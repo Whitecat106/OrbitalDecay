@@ -41,6 +41,9 @@ namespace WhitecatIndustries
 
         public static double EndSceneWaitTime = 0;
         public static double StartSceneWaitTime = 0;
+        public static bool VesselMovementUpdate = false;
+        public static bool VesselMoving = false;
+        public static double TimeOfLastMovement = 0.0;
 
         public void Awake()
         {
@@ -130,14 +133,29 @@ namespace WhitecatIndustries
                 VesselInformation.AddNode(vesselData);
             }
 
-            /*if (CheckIfContained(vessel) == true)
+            if (CheckIfContained(vessel) == true)
             {
-                if (FetchSMA(vessel) < vessel.orbitDriver.orbit.semiMajorAxis) // Checks if a vessel is still moving between orbits
+                if (vessel = FlightGlobals.ActiveVessel)
                 {
-                    UpdateVesselSMA(vessel, (float)vessel.orbitDriver.orbit.semiMajorAxis);
+                    if (FlightGlobals.ActiveVessel.geeForce > 0) // Checks if a vessel is still moving between orbits
+                    {
+                        VesselMovementUpdate = false;
+                        VesselMoving = true;
+                        TimeOfLastMovement = HighLogic.CurrentGame.UniversalTime;
+                    }
+                    else
+                    {
+                        VesselMoving = false;
+                    }
+
+                    if (VesselMoving == false && (HighLogic.CurrentGame.UniversalTime - TimeOfLastMovement) < 1 && VesselMovementUpdate == false)
+                    {
+                        UpdateVesselSMA(vessel, (float)vessel.orbitDriver.orbit.semiMajorAxis);
+                        VesselMovementUpdate = true;
+                    }
                 }
             }
-            */
+            
         }
 
         public static void UpdateActiveVesselData(Vessel vessel)
