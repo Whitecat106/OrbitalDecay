@@ -1,0 +1,9 @@
+Orbital Decay Full Release 
+
+***Version  1.1.0***
+
+Features:
+
+- UI For KSP 1.1, active vessel decay. 
+- Settings to adjust decay rates, and filter UI menus. 
+- RSS support
