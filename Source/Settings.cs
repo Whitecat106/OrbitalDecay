@@ -49,8 +49,9 @@ namespace WhitecatIndustries
             }
         }
 
-        public void Destroy()
+        public void OnDestroy()
         {
+            settings.ClearData();
             SettingData.Save(FilePath);
         }
 
