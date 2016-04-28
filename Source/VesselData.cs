@@ -82,6 +82,11 @@ namespace WhitecatIndustries
                                 {
                                     ClearVesselData(vessel);
                                 }
+
+                                if (vessel.situation == Vessel.Situations.ORBITING)
+                                {
+                                    WriteVesselData(vessel);
+                                }
                             }
                             else if (CheckIfContained(vessel) == false)
                             {
@@ -98,9 +103,9 @@ namespace WhitecatIndustries
 
         public void OnDestroy()
         {
-            if ((Planetarium.GetUniversalTime() == HighLogic.CurrentGame.UniversalTime) || HighLogic.LoadedScene == GameScenes.FLIGHT)
+            if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
             {
-                if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
+                if ((Planetarium.GetUniversalTime() == HighLogic.CurrentGame.UniversalTime) || HighLogic.LoadedScene == GameScenes.FLIGHT)
                 {
                     print("WhitecatIndustries - Orbital Decay - Vessel Information saved.");
                     File.ClearNodes();
@@ -137,7 +142,7 @@ namespace WhitecatIndustries
             {
                 if (vessel = FlightGlobals.ActiveVessel)
                 {
-                    if (FlightGlobals.ActiveVessel.geeForce > 0) // Checks if a vessel is still moving between orbits
+                    if (FlightGlobals.ActiveVessel.geeForce > 0.01) // Checks if a vessel is still moving between orbits (Average GForce around 0.0001)
                     {
                         VesselMovementUpdate = false;
                         VesselMoving = true;

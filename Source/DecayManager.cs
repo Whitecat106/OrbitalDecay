@@ -53,7 +53,7 @@ namespace WhitecatIndustries
 
         public void Start()
         {
-            if (HighLogic.LoadedSceneIsGame) 
+            if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING || HighLogic.LoadedScene != GameScenes.LOADINGBUFFER))
             {
                 DecayRateModifier = Settings.ReadDecayDifficulty();
 

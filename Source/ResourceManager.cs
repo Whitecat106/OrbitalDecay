@@ -32,7 +32,6 @@ using KSP.IO;
 
 namespace WhitecatIndustries
 {
-    //[KSPAddon(KSPAddon.Startup.EveryScene, false)]
     public class ResourceManager : MonoBehaviour
     {
         public static void RemoveResources(Vessel vessel, string resource, float quantity)
@@ -105,5 +104,6 @@ namespace WhitecatIndustries
             }
             return Efficiency;
         }
+
     }
 }
