@@ -257,72 +257,75 @@ namespace WhitecatIndustries
 
         public static void CatchUpOrbit(Vessel vessel)
         {
-            if (VesselData.FetchSMA(vessel) != vessel.orbitDriver.orbit.semiMajorAxis && VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.semiMajorAxis)
+            if (vessel.situation != Vessel.Situations.PRELAUNCH && vessel.situation != Vessel.Situations.LANDED)
             {
-                try
+                if (VesselData.FetchSMA(vessel) != vessel.orbitDriver.orbit.semiMajorAxis && VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.semiMajorAxis)
                 {
-                    OrbitPhysicsManager.HoldVesselUnpack(60);
-                }
-                catch (NullReferenceException)
-                {
-                }
-
-                for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
-                {
-                    Vessel ship = FlightGlobals.Vessels.ElementAt(i);
-                    if (ship.packed)
+                    try
                     {
-                        ship.GoOnRails();
+                        OrbitPhysicsManager.HoldVesselUnpack(60);
                     }
-                }
-                if (HighLogic.LoadedScene == GameScenes.FLIGHT && vessel.situation != Vessel.Situations.PRELAUNCH)
-                {
-                    if (vessel = FlightGlobals.ActiveVessel)
+                    catch (NullReferenceException)
                     {
-                        vessel.GoOnRails();
                     }
-                }
-                var oldBody = vessel.orbitDriver.orbit.referenceBody;
-                var orbit = vessel.orbitDriver.orbit;
-                orbit.inclination = vessel.orbit.inclination;
-                if (VesselData.FetchSMA(vessel) == 0)
-                {
-                    orbit.semiMajorAxis = vessel.orbit.semiMajorAxis;
-                    orbit.eccentricity = vessel.orbit.eccentricity;
-                }
-                else
-                {
-                    /*
-                    double TempEccentricity = orbit.eccentricity; // Stock issues with this
-                    if (orbit.eccentricity > 0.005)
+
+                    for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
                     {
-                        orbit.eccentricity = CalculateNewEccentricity(TempEccentricity, orbit.semiMajorAxis, VesselData.FetchSMA(vessel));
+                        Vessel ship = FlightGlobals.Vessels.ElementAt(i);
+                        if (ship.packed)
+                        {
+                            ship.GoOnRails();
+                        }
                     }
-                    */
-                    orbit.semiMajorAxis = VesselData.FetchSMA(vessel);
-                }
-                orbit.LAN = vessel.orbit.LAN;
-                orbit.argumentOfPeriapsis = vessel.orbit.argumentOfPeriapsis;
-                orbit.meanAnomalyAtEpoch = vessel.orbit.meanAnomalyAtEpoch;
-                orbit.epoch = vessel.orbit.epoch;
-                orbit.referenceBody = vessel.orbit.referenceBody;
-                orbit.Init();
+                    if (HighLogic.LoadedScene == GameScenes.FLIGHT && vessel.situation != Vessel.Situations.PRELAUNCH)
+                    {
+                        if (vessel = FlightGlobals.ActiveVessel)
+                        {
+                            vessel.GoOnRails();
+                        }
+                    }
+                    var oldBody = vessel.orbitDriver.orbit.referenceBody;
+                    var orbit = vessel.orbitDriver.orbit;
+                    orbit.inclination = vessel.orbit.inclination;
+                    if (VesselData.FetchSMA(vessel) == 0)
+                    {
+                        orbit.semiMajorAxis = vessel.orbit.semiMajorAxis;
+                        orbit.eccentricity = vessel.orbit.eccentricity;
+                    }
+                    else
+                    {
+                        /*
+                        double TempEccentricity = orbit.eccentricity; // Stock issues with this
+                        if (orbit.eccentricity > 0.005)
+                        {
+                            orbit.eccentricity = CalculateNewEccentricity(TempEccentricity, orbit.semiMajorAxis, VesselData.FetchSMA(vessel));
+                        }
+                        */
+                        orbit.semiMajorAxis = VesselData.FetchSMA(vessel);
+                    }
+                    orbit.LAN = vessel.orbit.LAN;
+                    orbit.argumentOfPeriapsis = vessel.orbit.argumentOfPeriapsis;
+                    orbit.meanAnomalyAtEpoch = vessel.orbit.meanAnomalyAtEpoch;
+                    orbit.epoch = vessel.orbit.epoch;
+                    orbit.referenceBody = vessel.orbit.referenceBody;
+                    orbit.Init();
 
-                if (TimeWarp.CurrentRate == 1)
-                {
-                    print("KSP - Orbital Decay - Updating Orbit of: " + vessel.vesselName + ". New Semi Major Axis: " + orbit.semiMajorAxis + "m.");
-                }
+                    if (TimeWarp.CurrentRate == 1)
+                    {
+                        print("KSP - Orbital Decay - Updating Orbit of: " + vessel.vesselName + ". New Semi Major Axis: " + orbit.semiMajorAxis + "m.");
+                    }
 
-                orbit.UpdateFromUT(Planetarium.GetUniversalTime()); 
-                vessel.orbitDriver.pos = vessel.orbit.pos.xzy;
-                vessel.orbitDriver.vel = vessel.orbit.vel;
+                    orbit.UpdateFromUT(Planetarium.GetUniversalTime());
+                    vessel.orbitDriver.pos = vessel.orbit.pos.xzy;
+                    vessel.orbitDriver.vel = vessel.orbit.vel;
 
-                var newBody = vessel.orbitDriver.orbit.referenceBody;
-                if (newBody != oldBody)
-                {
-                    var evnt = new GameEvents.HostedFromToAction<Vessel, CelestialBody>(vessel, oldBody, newBody);
-                    GameEvents.onVesselSOIChanged.Fire(evnt);
-                    VesselData.UpdateBody(vessel, newBody);
+                    var newBody = vessel.orbitDriver.orbit.referenceBody;
+                    if (newBody != oldBody)
+                    {
+                        var evnt = new GameEvents.HostedFromToAction<Vessel, CelestialBody>(vessel, oldBody, newBody);
+                        GameEvents.onVesselSOIChanged.Fire(evnt);
+                        VesselData.UpdateBody(vessel, newBody);
+                    }
                 }
             }
         }
