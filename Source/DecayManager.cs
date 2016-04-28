@@ -500,58 +500,61 @@ namespace WhitecatIndustries
         public static void CheckVesselSurvival(Vessel vessel)
         {
             VesselDied = false;
-
-            if (vessel.orbitDriver.orbit.referenceBody.atmosphere) // Big problem ( Jool, Eve, Duna, Kerbin, Laythe)
+            if (vessel.situation != Vessel.Situations.SUB_ORBITAL) // Prevents debris from dissapearing
             {
-                if (!MessageDisplayed.Keys.Contains(vessel))
+
+                if (vessel.orbitDriver.orbit.referenceBody.atmosphere) // Big problem ( Jool, Eve, Duna, Kerbin, Laythe)
                 {
-                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth + 500)
+                    if (!MessageDisplayed.Keys.Contains(vessel))
                     {
-                        TimeWarp.SetRate(0, true);
-                        print("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
-                        ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
-                        MessageDisplayed.Add(vessel, true);
+                        if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth + 500)
+                        {
+                            TimeWarp.SetRate(0, true);
+                            print("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
+                            ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
+                            MessageDisplayed.Add(vessel, true);
+                        }
+                    }
+
+                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth + 5)
+                    {
+                        VesselDied = true;
+                    }
+                }
+                else // Moon Smaller Problem
+                {
+                    if (MessageDisplayed.Keys.Contains(vessel))
+                    {
+                        if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + 5000)
+                        {
+                            TimeWarp.SetRate(0, true);
+                            print("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
+                            ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
+                            MessageDisplayed.Add(vessel, true);
+                        }
+                    }
+
+                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + 100)
+                    {
+                        VesselDied = true;
                     }
                 }
 
-                if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth + 5)
+                if (VesselDied == true)
                 {
-                    VesselDied = true;
-                }
-            }
-            else // Moon Smaller Problem
-            {
-                if (MessageDisplayed.Keys.Contains(vessel))
-                {
-                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + 5000)
+                    if (vessel != FlightGlobals.ActiveVessel)
                     {
-                        TimeWarp.SetRate(0, true);
-                        print("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
-                        ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
-                        MessageDisplayed.Add(vessel, true);
+                        print(vessel.name + " entered " + vessel.orbitDriver.referenceBody.name + "'s atmosphere and was destroyed");
+                        ScreenMessages.PostScreenMessage(vessel.name + " entered " + vessel.orbitDriver.referenceBody.name + "'s atmosphere and was destroyed");
+                        if (MessageDisplayed.ContainsKey(vessel))
+                        {
+                            MessageDisplayed.Remove(vessel);
+                        }
+                        VesselData.ClearVesselData(vessel);
+                        vessel.Die();
                     }
+                    VesselDied = false;
                 }
-
-                if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + 100)
-                {
-                    VesselDied = true;
-                }
-            }
-
-            if (VesselDied == true)
-            {
-                if (vessel != FlightGlobals.ActiveVessel)
-                {
-                    print(vessel.name + " entered " + vessel.orbitDriver.referenceBody.name + "'s atmosphere and was destroyed");
-                    ScreenMessages.PostScreenMessage(vessel.name + " entered " + vessel.orbitDriver.referenceBody.name + "'s atmosphere and was destroyed");
-                    if (MessageDisplayed.ContainsKey(vessel))
-                    {
-                        MessageDisplayed.Remove(vessel);
-                    }
-                    VesselData.ClearVesselData(vessel);
-                    vessel.Die();
-                }
-                VesselDied = false;
             }
         }
 
