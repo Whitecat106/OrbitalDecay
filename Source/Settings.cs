@@ -42,6 +42,7 @@ namespace WhitecatIndustries
 
         public void Start()
         {
+            SettingData.ClearData();
             settings = ConfigNode.Load(FilePath);
             foreach (ConfigNode item in settings.nodes)
             {
