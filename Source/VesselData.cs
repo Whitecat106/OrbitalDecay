@@ -184,7 +184,7 @@ namespace WhitecatIndustries
                 ResourceName = Settings.ReadStationKeepingResource();
 
                 VesselNode.SetValue("Mass", (vessel.GetTotalMass() * 1000).ToString());
-                VesselNode.SetValue("Area", (vessel.rootPart.exposedArea).ToString());
+                VesselNode.SetValue("Area", (CalculateVesselArea(vessel)).ToString());
                 VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel, ResourceName)).ToString());
                 VesselNode.SetValue("DryFuel", (ResourceManager.GetResources(vessel,ResourceName)).ToString()); // Dry Resources broken?
             }
@@ -226,12 +226,12 @@ namespace WhitecatIndustries
             if (vessel == FlightGlobals.ActiveVessel)
             {
                 newVessel.AddValue("Mass", vessel.GetTotalMass() * 1000); // 1.1.0 in kilograms!
-                newVessel.AddValue("Area", vessel.rootPart.exposedArea); // Try?
+                newVessel.AddValue("Area", CalculateVesselArea(vessel)); // Try?
             }
             else
             {
                 newVessel.AddValue("Mass", vessel.GetTotalMass() * 1000); // Try "1"
-                newVessel.AddValue("Area", "2");
+                newVessel.AddValue("Area", CalculateVesselArea(vessel));
             }
             newVessel.AddValue("ReferenceBody", vessel.orbitDriver.orbit.referenceBody.GetName());
             newVessel.AddValue("SMA", vessel.orbitDriver.orbit.semiMajorAxis.ToString());
@@ -484,6 +484,28 @@ namespace WhitecatIndustries
                     break;
                 }
             }
+        }
+
+        public static double CalculateVesselArea(Vessel vessel)
+        {
+            double Area = 0;
+            if (vessel.rootPart.radiativeArea != 0)
+            {
+                Area = vessel.rootPart.radiativeArea / 2;
+            }
+            else
+            {
+                if (Settings.ReadRD()) // Temporary Assumptions
+                {
+                    Area = 3.5;
+                }
+                else
+                {
+                    Area = 1.25; 
+                }
+            }
+            print("Area: " + Area);
+            return Area;
         }
 
        /* public static double FetchEngineISP(Vessel vessel) // Resource and Engine management 1.2.0

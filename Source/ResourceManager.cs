@@ -105,5 +105,30 @@ namespace WhitecatIndustries
             return Efficiency;
         }
 
+        public static List<PartResource> GetVesselPartResources(Vessel vessel)
+        {
+            PartResourceList List;
+            List<PartResource> UsableResources = new List<PartResource>();
+
+            List = vessel.rootPart.Resources;
+
+            foreach (PartResource Res in List)
+            {
+                double Id = Res.GetInstanceID();
+                foreach (PartResourceDefinition Resource in PartResourceLibrary.Instance.resourceDefinitions)
+                {
+                    if (Resource.id == Id)
+                    {
+                        if (Resource.resourceFlowMode != ResourceFlowMode.ALL_VESSEL && Resource.resourceFlowMode != ResourceFlowMode.NO_FLOW && Resource.resourceTransferMode != ResourceTransferMode.NONE &&
+                            Resource.name != "EVA Propellant" && Resource.name != "Ore" && Resource.name != "ElectricCharge" && Resource.name != "IntakeAir")
+                        {
+                            UsableResources.Add(Res);
+                        }
+                    }
+                }
+            }       
+            return UsableResources;
+        }
+
     }
 }

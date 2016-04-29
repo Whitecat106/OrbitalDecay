@@ -88,11 +88,14 @@ namespace WhitecatIndustries
 
         public void FixedUpdate()
         {
-            if (Time.timeSinceLevelLoad > 0.5 && HighLogic.LoadedSceneIsFlight && CatchupResourceMassAreaDataComplete == false && FlightGlobals.ActiveVessel.situation == Vessel.Situations.ORBITING)
+            if (Time.timeSinceLevelLoad > 1.0 && HighLogic.LoadedSceneIsFlight && CatchupResourceMassAreaDataComplete == false && FlightGlobals.ActiveVessel.situation == Vessel.Situations.ORBITING)
             {
-                VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
-                print("WhitecatIndustries - Orbital Decay - Updating Fuel Levels for: " + FlightGlobals.ActiveVessel.GetName());
-                CatchupResourceMassAreaDataComplete = true;
+                if (!FlightGlobals.ActiveVessel.packed && FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
+                {
+                    VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
+                    print("WhitecatIndustries - Orbital Decay - Updating Fuel Levels for: " + FlightGlobals.ActiveVessel.GetName());
+                    CatchupResourceMassAreaDataComplete = true;
+                }
             }
 
             if (Time.timeSinceLevelLoad > 0.6)
@@ -294,14 +297,16 @@ namespace WhitecatIndustries
                     }
                     else
                     {
-                        /*
-                        double TempEccentricity = orbit.eccentricity; // Stock issues with this
+                        
+                        double TempEccentricity = orbit.eccentricity; // Issues with this
+                        double NewEccentricity = orbit.eccentricity;
                         if (orbit.eccentricity > 0.005)
                         {
-                            orbit.eccentricity = CalculateNewEccentricity(TempEccentricity, orbit.semiMajorAxis, VesselData.FetchSMA(vessel));
+                        //    NewEccentricity = CalculateNewEccentricity(TempEccentricity, orbit.semiMajorAxis, VesselData.FetchSMA(vessel));
                         }
-                        */
+                        
                         orbit.semiMajorAxis = VesselData.FetchSMA(vessel);
+                        orbit.eccentricity = NewEccentricity;
                     }
                     orbit.LAN = vessel.orbit.LAN;
                     orbit.argumentOfPeriapsis = vessel.orbit.argumentOfPeriapsis;
