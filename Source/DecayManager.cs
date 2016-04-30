@@ -515,7 +515,7 @@ namespace WhitecatIndustries
                 {
                     if (!MessageDisplayed.Keys.Contains(vessel))
                     {
-                        if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth + 500)
+                        if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth)
                         {
                             TimeWarp.SetRate(0, true);
                             print("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
@@ -524,7 +524,7 @@ namespace WhitecatIndustries
                         }
                     }
 
-                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth + 5)
+                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + (vessel.orbitDriver.referenceBody.atmosphereDepth/(double)1.5)) // 1.3.0 Increased Tolerance
                     {
                         VesselDied = true;
                     }
