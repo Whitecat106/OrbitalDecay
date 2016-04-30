@@ -84,6 +84,7 @@ namespace WhitecatIndustries
                 Settings.WriteRD(true);
                 Settings.Write24H(true);
                 Settings.WriteDifficulty(1.0);
+                Settings.WritePlanetariumTracking(true);
                 print("WhitecatIndustries - Real Solar System Detected, Multiplier Set Changed");
             }
 

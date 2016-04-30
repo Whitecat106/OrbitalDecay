@@ -147,7 +147,7 @@ namespace WhitecatIndustries
 
                                                 if (Settings.ReadRD() == true)
                                                 {
-                                                    ActiveDecayStock(vessel); // 1.2.0 Realistic Active Decay fixes
+                                                    ActiveDecayRealistic(vessel); // 1.2.0 Realistic Active Decay fixes
                                                 }
                                                 else
                                                 {
@@ -317,7 +317,7 @@ namespace WhitecatIndustries
 
                     if (TimeWarp.CurrentRate == 1)
                     {
-                        print("KSP - Orbital Decay - Updating Orbit of: " + vessel.vesselName + ". New Semi Major Axis: " + orbit.semiMajorAxis + "m.");
+                       // print("KSP - Orbital Decay - Updating Orbit of: " + vessel.vesselName + ". New Semi Major Axis: " + orbit.semiMajorAxis + "m.");
                     }
 
                     orbit.UpdateFromUT(Planetarium.GetUniversalTime());
@@ -567,18 +567,18 @@ namespace WhitecatIndustries
         }
 
         public static void ActiveDecayRealistic(Vessel vessel)            // 1.2.0
-        {
-            Vector3d decayVelVector;
-            double DeltaSMARate = DecayRateRealistic(vessel);
-            double DeltaPeriod = Math.Sqrt(((4 * Math.PI * Math.PI) / vessel.orbitDriver.orbit.referenceBody.gravParameter) * (DeltaSMARate * DeltaSMARate * DeltaSMARate));
-            double Eccentricity = vessel.orbitDriver.orbit.eccentricity;
-            double EstimatedDecayChangeInVelocity = ((2 * Math.PI * DeltaSMARate) / (DeltaPeriod)) * (1 - (0.25 * Eccentricity * Eccentricity) - ((3.0 / 64) * Eccentricity * Eccentricity * Eccentricity * Eccentricity));
-            decayVelVector = vessel.orbitDriver.orbit.vel * EstimatedDecayChangeInVelocity;
+        {  
+            double ReadTime = HighLogic.CurrentGame.UniversalTime;     
             double DecayValue = DecayRateRealistic(vessel);
+            double InitialVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
+            double CalculatedFinalVelocty = 0.0;
+            Orbit newOrbit = vessel.orbitDriver.orbit;
+            newOrbit.semiMajorAxis = (VesselData.FetchSMA(vessel) - DecayValue);
+            CalculatedFinalVelocty = newOrbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
 
             if (TimeWarp.CurrentRate == 1)
             {
-                vessel.ChangeWorldVelocity(-decayVelVector);
+                //vessel.ChangeWorldVelocity(-((vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(ReadTime) * (InitialVelocity - CalculatedFinalVelocty)) / 10000000)); // REMOVED FOR NOW (BACK IN 1.3.0)
             }
 
             else
@@ -586,6 +586,7 @@ namespace WhitecatIndustries
                 VesselData.UpdateVesselSMA(vessel, ((float)VesselData.FetchSMA(vessel) - (float)DecayValue));
                 CatchUpOrbit(vessel);
             }
+      
         }
 
         public static void ActiveDecayStock(Vessel vessel)
@@ -633,7 +634,7 @@ namespace WhitecatIndustries
 
                 if (TimeWarp.CurrentRate == 1)
                 {
-                    vessel.ChangeWorldVelocity(-decayVelVector);
+                    //vessel.ChangeWorldVelocity(-decayVelVector); // REMOVED FOR NOW (BACK IN 1.3.0)
                 }
 
                 else

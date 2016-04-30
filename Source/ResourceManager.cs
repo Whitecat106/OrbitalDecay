@@ -105,7 +105,7 @@ namespace WhitecatIndustries
             return Efficiency;
         }
 
-        public static List<PartResource> GetVesselPartResources(Vessel vessel)
+        public static List<PartResource> GetVesselPartResources(Vessel vessel) //1.2.0
         {
             PartResourceList List;
             List<PartResource> UsableResources = new List<PartResource>();
