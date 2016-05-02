@@ -58,6 +58,7 @@ namespace WhitecatIndustries
                 DecayRateModifier = Settings.ReadDecayDifficulty();
 
                 GameEvents.onVesselWillDestroy.Add(ClearVesselOnDestroy);
+                GameEvents.onVesselWasModified.Add(UpdateActiveVesselInformation); // Resource level change 1.3.0
 
                 DecayRateModifier = Settings.ReadDecayDifficulty();
                 Vessel vessel = new Vessel();
@@ -80,6 +81,13 @@ namespace WhitecatIndustries
             }
         }
 
+        public void UpdateActiveVesselInformation(Vessel vessel)
+        {
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                VesselData.UpdateActiveVesselData(vessel);
+            }
+        }
 
         public void ClearVesselOnDestroy(Vessel vessel)
         {
@@ -201,6 +209,7 @@ namespace WhitecatIndustries
             if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
             {
                 GameEvents.onVesselWillDestroy.Remove(ClearVesselOnDestroy);
+                GameEvents.onVesselWasModified.Remove(UpdateActiveVesselInformation); // 1.3.0 Resource Change
 
                 DecayRateModifier = Settings.ReadDecayDifficulty();
                 Vessel vessel = new Vessel();  // Set Vessel Orbits
@@ -581,7 +590,7 @@ namespace WhitecatIndustries
                 //vessel.ChangeWorldVelocity(-((vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(ReadTime) * (InitialVelocity - CalculatedFinalVelocty)) / 10000000)); // REMOVED FOR NOW (BACK IN 1.3.0)
             }
 
-            else
+            else if (TimeWarp.CurrentRate > 1 && TimeWarp.WarpMode != TimeWarp.Modes.LOW) // 1.3.0 Timewarp Fix
             {
                 VesselData.UpdateVesselSMA(vessel, ((float)VesselData.FetchSMA(vessel) - (float)DecayValue));
                 CatchUpOrbit(vessel);
@@ -637,7 +646,7 @@ namespace WhitecatIndustries
                     //vessel.ChangeWorldVelocity(-decayVelVector); // REMOVED FOR NOW (BACK IN 1.3.0)
                 }
 
-                else
+                else if (TimeWarp.CurrentRate > 1 && TimeWarp.WarpMode != TimeWarp.Modes.LOW) // 1.3.0 Timewarp Fix
                 {
                     VesselData.UpdateVesselSMA(vessel, ((float)VesselData.FetchSMA(vessel) - (float)DecayValue));
                     CatchUpOrbit(vessel);

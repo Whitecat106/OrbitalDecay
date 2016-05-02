@@ -96,7 +96,7 @@ namespace WhitecatIndustries
             PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(resource);
             if (Settings.ReadRD())
             {
-                Efficiency = resourceDef.density * 50.0f;
+                Efficiency = resourceDef.density; // Balance here!
             }
             else
             {
