@@ -231,7 +231,7 @@ namespace WhitecatIndustries
             else
             {
                 newVessel.AddValue("Mass", vessel.GetTotalMass() * 1000); // Try "1"
-                newVessel.AddValue("Area", CalculateVesselArea(vessel));
+                newVessel.AddValue("Area", "2.0"); // Still getting bugs here
             }
             newVessel.AddValue("ReferenceBody", vessel.orbitDriver.orbit.referenceBody.GetName());
             newVessel.AddValue("SMA", vessel.orbitDriver.orbit.semiMajorAxis.ToString());
