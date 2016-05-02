@@ -59,6 +59,9 @@ namespace WhitecatIndustries
 
                 GameEvents.onVesselWillDestroy.Add(ClearVesselOnDestroy);
                 GameEvents.onVesselWasModified.Add(UpdateActiveVesselInformation); // Resource level change 1.3.0
+                GameEvents.onStageSeparation.Add(UpdateActiveVesselInformationEventReport); // Resource level change 1.3.0
+                GameEvents.onPartActionUIDismiss.Add(UpdateActiveVesselInformationPart); // Resource level change 1.3.0
+                GameEvents.onPartActionUICreate.Add(UpdateActiveVesselInformationPart);
 
                 DecayRateModifier = Settings.ReadDecayDifficulty();
                 Vessel vessel = new Vessel();
@@ -79,6 +82,20 @@ namespace WhitecatIndustries
                    ActiveVesselFuelManage(FlightGlobals.ActiveVessel);
                 }
             }
+        }
+
+        public void UpdateActiveVesselInformationEventReport(EventReport report) // 1.3.0
+        {
+            VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
+        }
+
+        public void UpdateActiveVesselInformationPart(Part part) // Until eventdata OnPartResourceFlowState works! // 1.3.0
+        {
+            if (part.vessel == FlightGlobals.ActiveVessel && TimeWarp.CurrentRate == 1)
+            {
+                VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
+            }
+
         }
 
         public void UpdateActiveVesselInformation(Vessel vessel)
@@ -210,6 +227,9 @@ namespace WhitecatIndustries
             {
                 GameEvents.onVesselWillDestroy.Remove(ClearVesselOnDestroy);
                 GameEvents.onVesselWasModified.Remove(UpdateActiveVesselInformation); // 1.3.0 Resource Change
+                GameEvents.onStageSeparation.Remove(UpdateActiveVesselInformationEventReport); // 1.3.0
+                GameEvents.onPartActionUIDismiss.Remove(UpdateActiveVesselInformationPart); // 1.3.0
+                GameEvents.onPartActionUICreate.Remove(UpdateActiveVesselInformationPart);
 
                 DecayRateModifier = Settings.ReadDecayDifficulty();
                 Vessel vessel = new Vessel();  // Set Vessel Orbits
@@ -329,7 +349,7 @@ namespace WhitecatIndustries
                        // print("KSP - Orbital Decay - Updating Orbit of: " + vessel.vesselName + ". New Semi Major Axis: " + orbit.semiMajorAxis + "m.");
                     }
 
-                    orbit.UpdateFromUT(Planetarium.GetUniversalTime());
+                    orbit.UpdateFromUT(HighLogic.CurrentGame.UniversalTime); // Changed from Planetarium.GetUniversalTime()
                     vessel.orbitDriver.pos = vessel.orbit.pos.xzy;
                     vessel.orbitDriver.vel = vessel.orbit.vel;
 
@@ -357,7 +377,7 @@ namespace WhitecatIndustries
                 if (InitialSemiMajorAxis < MaxInfluence)
                 {
                     double StandardGravitationalParameter = body.gravParameter;
-                    double CartesianPositionVectorMagnitude = orbit.getRelativePositionAtT(Planetarium.GetUniversalTime()).magnitude;
+                    double CartesianPositionVectorMagnitude = orbit.getRelativePositionAtT(HighLogic.CurrentGame.UniversalTime).magnitude; // Planetarium to HighLogic
                     double EquivalentAltitude = (InitialSemiMajorAxis - body.Radius);
                     if (orbit.eccentricity > 0.085)
                     {
@@ -668,7 +688,7 @@ namespace WhitecatIndustries
                 if (InitialSemiMajorAxis < MaxInfluence)
                 {
                     double StandardGravitationalParameter = body.gravParameter;
-                    double CartesianPositionVectorMagnitude = orbit.getRelativePositionAtT(Planetarium.GetUniversalTime()).magnitude;
+                    double CartesianPositionVectorMagnitude = orbit.getRelativePositionAtT(HighLogic.CurrentGame.UniversalTime).magnitude; // Planetarium
                     double EquivalentAltitude = (InitialSemiMajorAxis - body.Radius);
                     if (orbit.eccentricity > 0.085)
                     {

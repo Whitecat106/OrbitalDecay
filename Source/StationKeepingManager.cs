@@ -62,7 +62,49 @@ namespace WhitecatIndustries
                 }
             }
         }
-        
+
+        public static bool EngineCheck(Vessel vessel) // 1.3.0
+        {
+            bool HasEngine = false;
+
+                if (vessel != FlightGlobals.ActiveVessel)
+                {
+                    ProtoVessel protovessel = vessel.protoVessel;
+                    List<ProtoPartSnapshot> PPSL = protovessel.protoPartSnapshots;
+
+                    foreach (ProtoPartSnapshot PPS in PPSL)
+                    {
+                        List<ProtoPartModuleSnapshot> PPMSL = PPS.modules;
+                        foreach (ProtoPartModuleSnapshot PPMS in PPMSL)
+                        {
+                            if (PPMS.moduleName == "ModuleEngines" || PPMS.moduleName == "ModuleRCS")
+                            {
+                                HasEngine = true;
+                                break;
+                            }
+                        }
+
+                        if (HasEngine == true)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                else if (vessel == FlightGlobals.ActiveVessel)
+                {
+                    if (vessel.FindPartModulesImplementing<ModuleEngines>().Count > 0 || vessel.FindPartModulesImplementing<ModuleRCS>().Count > 0)
+                    {
+                        HasEngine = true;
+                    }
+                    else
+                    {
+                        HasEngine = false;
+                    }
+                }
+
+            return HasEngine;
+        }
 
         public static void FuelManager(Vessel vessel)
         {
@@ -84,20 +126,30 @@ namespace WhitecatIndustries
 
             float FuelNew = CurrentFuel - LostFuel;
 
-            if (CurrentFuel < LostFuel)
+            if (EngineCheck(vessel) == false) // 1.3.0
             {
-                ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has run out of " + ResourceName + ", Station Keeping disabled.");
+                ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has no operational Engines or RCS modules, Station Keeping disabled.");
                 VesselData.UpdateStationKeeping(vessel, false);
-                VesselData.UpdateVesselFuel(vessel, 0);
             }
-            else
+
+            else if (EngineCheck(vessel) == true)
             {
-                if (vessel == FlightGlobals.ActiveVessel)
+
+                if (CurrentFuel < LostFuel)
                 {
-                    ResourceManager.CatchUp(vessel, ResourceName);
-                    ResourceManager.RemoveResources(vessel, ResourceName, (LostFuel)); // Balancing required here
+                    ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has run out of " + ResourceName + ", Station Keeping disabled.");
+                    VesselData.UpdateStationKeeping(vessel, false);
+                    VesselData.UpdateVesselFuel(vessel, 0);
                 }
-                VesselData.UpdateVesselFuel(vessel, FuelNew);
+                else
+                {
+                    if (vessel == FlightGlobals.ActiveVessel)
+                    {
+                        ResourceManager.CatchUp(vessel, ResourceName);
+                        ResourceManager.RemoveResources(vessel, ResourceName, (LostFuel)); // Balancing required here
+                    }
+                    VesselData.UpdateVesselFuel(vessel, FuelNew);
+                }
             }
         }
     }

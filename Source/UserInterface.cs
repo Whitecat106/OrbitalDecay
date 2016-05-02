@@ -2,10 +2,7 @@
 
 // Stock decay - Eccentricity problem -- Remove for now? -- No lets work this one out! -- Or maybe not... 1.3.0
 // add RSS realistic active decay -- 1.3.0
-// add protopartsnapshot information 1.3.0 
 // Multiple resources active at the same time? -- 1.3.0
-// Planetarium tracking by default? -- In RSS
-// Vessel update on save load or scene swtich -- Maybe fixed
 
 /*
  * Whitecat Industries Orbital Decay for Kerbal Space Program. 
@@ -278,7 +275,12 @@ namespace WhitecatIndustries
                                 }
                                 else
                                 {
-                                    if (RealisticDecayTime > DaysInYear)
+                                    if ((RealisticDecayTime / DaysInYear) > 1000)
+                                    {
+                                        GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
+                                    }
+
+                                    else if (RealisticDecayTime > DaysInYear)
                                     {
                                         GUILayout.Label("Approximate Time Until Decay: " + (RealisticDecayTime / DaysInYear).ToString("F1") + " years.");
                                     }
@@ -310,7 +312,12 @@ namespace WhitecatIndustries
 
                                 else
                                 {
-                                    if (StockDecayTime > DaysInYear)
+                                    if ((StockDecayTime / DaysInYear) > 1000)
+                                    {
+                                        GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
+                                    }
+
+                                    else if (StockDecayTime > DaysInYear)
                                     {
                                         GUILayout.Label("Approximate Time Until Decay: " + (StockDecayTime / DaysInYear).ToString("F1") + " years.");
                                     }
@@ -359,26 +366,42 @@ namespace WhitecatIndustries
                                 DecayRateX = (((DecayManager.DecayRateRealistic(vessel) * 60 * 60 * HoursInDay) / TimeWarp.CurrentRate));
 
                                 double DecayTime = (((VesselData.FetchSMA(vessel)) - (vessel.orbitDriver.orbit.referenceBody.Radius)) / ((DecayRateX)));
-                                if (DecayTime < 0)
+
+                                if ((DecayTime / 425) > 1000 && HoursInDay == 6)
                                 {
-                                    GUILayout.Label("Approximate Time Until Decay: Decay Imminent");
+                                    GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
                                 }
-                                if (DecayTime >= 0 && DecayTime <= 365 && HoursInDay == 24)
+
+                                else if ((DecayTime / 365) > 1000 && HoursInDay == 24)
                                 {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
+                                    GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
                                 }
-                                else if (DecayTime > 365 && HoursInDay == 24)
+
+                                else
                                 {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (DecayTime / 365).ToString("F1") + " years.");
+
+                                    if (DecayTime < 0)
+                                    {
+                                        GUILayout.Label("Approximate Time Until Decay: Decay Imminent");
+                                    }
+                                    if (DecayTime >= 0 && DecayTime <= 365 && HoursInDay == 24)
+                                    {
+                                        GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
+                                    }
+                                    else if (DecayTime > 365 && HoursInDay == 24)
+                                    {
+                                        GUILayout.Label("Approximate Time Until Decay: " + (DecayTime / 365).ToString("F1") + " years.");
+                                    }
+                                    if (DecayTime >= 0 && DecayTime <= 425 && HoursInDay == 6)
+                                    {
+                                        GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
+                                    }
+                                    else if (DecayTime > 425 && HoursInDay == 6)
+                                    {
+                                        GUILayout.Label("Approximate Time Until Decay: " + (DecayTime / 425).ToString("F1") + " years.");
+                                    }
                                 }
-                                if (DecayTime >= 0 && DecayTime <= 425 && HoursInDay == 6)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
-                                }
-                                else if (DecayTime > 425 && HoursInDay == 6)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (DecayTime / 425).ToString("F1") + " years.");
-                                }
+
                             }
                             else
                             {
@@ -395,7 +418,12 @@ namespace WhitecatIndustries
                                     DaysInYear = 31557600 / (60 * 60 * HoursInDay);
                                 }
 
-                                if (StockDecayTime > DaysInYear)
+                                if ((StockDecayTime / DaysInYear) > 1000)
+                                {
+                                    GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
+                                }
+
+                                else if (StockDecayTime > DaysInYear)
                                 {
                                     GUILayout.Label("Approximate Time Until Decay: " + (StockDecayTime / DaysInYear).ToString("F1") + " years.");
                                 }
@@ -425,7 +453,34 @@ namespace WhitecatIndustries
                         }
 
                         double StationKeepingLifetime = (double.Parse(StationKeepingFuelRemaining) / ((DecayRateSKL / TimeWarp.CurrentRate) * ResourceManager.GetEfficiency(Resource))) / (60 * 60 * HoursInDay);
-                        GUILayout.Label("Station Keeping Fuel Lifetime: " + StationKeepingLifetime.ToString("F1") + " days.");
+
+                        if (StationKeepingLifetime > 365000 && HoursInDay == 24)
+                        {
+                            GUILayout.Label("Station Keeping Fuel Lifetime: > 1000 years.");
+                        }
+
+                        else if (StationKeepingLifetime > 425000 && HoursInDay == 6)
+                        {
+                            GUILayout.Label("Station Keeping Fuel Lifetime: > 1000 years.");
+                        }
+
+                        else
+                        {
+                            if (StationKeepingLifetime > 425 && HoursInDay == 6)
+                            {
+                                GUILayout.Label("Station Keeping Fuel Lifetime: " + (StationKeepingLifetime / 425).ToString("F1") + " years.");
+                            }
+
+                            if (StationKeepingLifetime > 365 && HoursInDay == 24)
+                            {
+                                GUILayout.Label("Station Keeping Fuel Lifetime: " + (StationKeepingLifetime / 365).ToString("F1") + " years.");
+                            }
+
+                            else
+                            {
+                                GUILayout.Label("Station Keeping Fuel Lifetime: " + StationKeepingLifetime.ToString("F1") + " days.");
+                            }
+                        }
                         GUILayout.Space(3);
                     }
 
@@ -440,15 +495,21 @@ namespace WhitecatIndustries
 
                         if (StationKeeping == "False")
                         {
-                            if (double.Parse(StationKeepingFuelRemaining) > 0.01  && (VesselData.FetchDryFuel(vessel)) > 0.01) // Good enough...
+                            if (StationKeepingManager.EngineCheck(vessel) == true)
                             {
-                                VesselData.UpdateStationKeeping(vessel, true);
-                                ScreenMessages.PostScreenMessage("Vessel: " + vessel.vesselName + (": Station Keeping Enabled"));
-
+                                if ((double.Parse(StationKeepingFuelRemaining) > 0.01 && (VesselData.FetchDryFuel(vessel)) > 0.01)) // Good enough...
+                                {
+                                    VesselData.UpdateStationKeeping(vessel, true);
+                                    ScreenMessages.PostScreenMessage("Vessel: " + vessel.vesselName + (": Station Keeping Enabled"));
+                                }
+                                else
+                                {
+                                    ScreenMessages.PostScreenMessage("Vessel: " + vessel.vesselName + (" has no fuel to Station Keep!"));
+                                }
                             }
                             else
                             {
-                                ScreenMessages.PostScreenMessage("Vessel: " + vessel.vesselName + (" has no fuel to Station Keep!"));
+                                ScreenMessages.PostScreenMessage("Vessel: " + vessel.vesselName + (" has no Engines or RCS modules on board!"));
                             }
                         }
                     }
