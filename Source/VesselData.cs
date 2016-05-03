@@ -234,7 +234,7 @@ namespace WhitecatIndustries
                 newVessel.AddValue("Area", "2.0"); // Still getting bugs here
             }
             newVessel.AddValue("ReferenceBody", vessel.orbitDriver.orbit.referenceBody.GetName());
-            newVessel.AddValue("SMA", vessel.orbitDriver.orbit.semiMajorAxis.ToString());
+            newVessel.AddValue("SMA", vessel.GetOrbitDriver().orbit.semiMajorAxis);
             newVessel.AddValue("StationKeeping", false.ToString());
             newVessel.AddValue("Fuel", ResourceManager.GetResources(vessel, ResourceName));
             newVessel.AddValue("DryFuel", ResourceManager.GetResources(vessel, ResourceName));
@@ -333,7 +333,7 @@ namespace WhitecatIndustries
 
         }
 
-        public static void UpdateVesselSMA(Vessel vessel, float SMA)
+        public static void UpdateVesselSMA(Vessel vessel, double SMA)
         {
             ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
@@ -353,11 +353,11 @@ namespace WhitecatIndustries
                 }
             }
         }
-        public static float FetchSMA(Vessel vessel)
+        public static double FetchSMA(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
-            float SMA = 0.0f;
+            double SMA = 0.0f;
 
             foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
             {
@@ -369,10 +369,11 @@ namespace WhitecatIndustries
 
                 if (Vesselfound == true)
                 {
-                    SMA = float.Parse(Vessel.GetValue("SMA").ToString());
+                    SMA = float.Parse(Vessel.GetValue("SMA"));
                     break;
                 }
             }
+
             return SMA;
         }
 
