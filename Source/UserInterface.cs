@@ -69,6 +69,8 @@ namespace WhitecatIndustries
             GameEvents.onGUIApplicationLauncherReady.Add(ReadyEvent);
             GameEvents.onGUIApplicationLauncherDestroyed.Remove(DestroyEvent);
             GameEvents.onGUIApplicationLauncherDestroyed.Add(DestroyEvent);
+            GameEvents.onHideUI.Remove(GuiOff);
+            GameEvents.onHideUI.Add(GuiOff);
         }
 
         public void ReadyEvent()
