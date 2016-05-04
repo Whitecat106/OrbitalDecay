@@ -44,7 +44,7 @@ namespace WhitecatIndustries
         public static bool VesselMovementUpdate = false;
         public static bool VesselMoving = false;
         public static double TimeOfLastMovement = 0.0;
-
+        public static bool ClearedOld = false;
         private float UPTInterval = 1.0f;
         private float lastUpdate = 0.0f;
 
@@ -60,7 +60,11 @@ namespace WhitecatIndustries
                 {
                     foreach (ConfigNode vessel in File.GetNodes("VESSEL"))
                     {
-                        VesselInformation.AddNode(vessel);
+                        string Persistence = vessel.GetValue("persistence");
+                        if (Persistence == HighLogic.SaveFolder.ToString() || Persistence == "WhitecatsDummySaveFileThatNoOneShouldNameTheirSave")
+                        {
+                            VesselInformation.AddNode(vessel);
+                        }
                     }
                 }
             }
@@ -111,7 +115,7 @@ namespace WhitecatIndustries
 
         public void OnDestroy()
         {
-            if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
+            if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER)) //&& HighLogic.LoadedScene != GameScenes.MAINMENU))
             {
                 if ((Planetarium.GetUniversalTime() == HighLogic.CurrentGame.UniversalTime) || HighLogic.LoadedScene == GameScenes.FLIGHT)
                 {
@@ -122,7 +126,6 @@ namespace WhitecatIndustries
                 }
             }
         }
-        
 
         public static bool CheckIfContained(Vessel vessel)
         {
@@ -229,6 +232,7 @@ namespace WhitecatIndustries
 
             newVessel.AddValue("name", vessel.GetName());
             newVessel.AddValue("id", vessel.id.ToString());
+            newVessel.AddValue("persistence", HighLogic.SaveFolder.ToString());
             string CatalogueCode = vessel.vesselType.ToString().Substring(0,1) + vessel.GetInstanceID().ToString();
             newVessel.AddValue("code", CatalogueCode);
             if (vessel == FlightGlobals.ActiveVessel)
