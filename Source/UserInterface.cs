@@ -180,6 +180,19 @@ namespace WhitecatIndustries
                     var ButtonText = "";
                     var HoursInDay = 6.0;
 
+                    double DaysInYear = 0;
+                    bool KerbinTime = GameSettings.KERBIN_TIME;
+
+                    if (KerbinTime == true)
+                    {
+                        DaysInYear = 9203545 / (60 * 60 * HoursInDay);
+                    }
+                    else
+                    {
+                        DaysInYear = 31557600 / (60 * 60 * HoursInDay);
+                    }
+
+
                     if (StationKeeping == "True")
                     {
                         ButtonText = "Disable Station Keeping";
@@ -237,9 +250,14 @@ namespace WhitecatIndustries
                             GUILayout.Label("Current Decay Rate: Vessel is in a stable orbit");
                         }
 
-                        else if (DecayRate <= 0.000000001 && Math.Sign(DecayRate) == -1)
+                        else if (DecayRate <= 0.000000001 && Math.Sign(DecayRate) == -1 && vessel.orbitDriver.orbit.referenceBody.atmosphere)
                         {
                             GUILayout.Label("Current Decay Rate: Vessel Periapsis too close to body atmosphere");
+                        }
+
+                        else if (DecayRate <= 0.000000001 && Math.Sign(DecayRate) == -1 && !vessel.orbitDriver.orbit.referenceBody.atmosphere)
+                        {
+                            GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 1000)).ToString("F1") + "mm per year");
                         }
 
                         else if (DecayRate > 0.000000001 && DecayRate < 1000)
@@ -259,17 +277,6 @@ namespace WhitecatIndustries
                             if (Realistic == true)
                             {
                                 double RealisticDecayTime = DecayManager.RealisticDecayTimePrediction(vessel);
-                                double DaysInYear = 0;
-                                bool KerbinTime = GameSettings.KERBIN_TIME;
-
-                                if (KerbinTime == true)
-                                {
-                                    DaysInYear = 9203545 / (60 * 60 * HoursInDay);
-                                }
-                                else
-                                {
-                                    DaysInYear = 31557600 / (60 * 60 * HoursInDay);
-                                }
 
                                 if (RealisticDecayTime < 0)
                                 {
@@ -295,17 +302,6 @@ namespace WhitecatIndustries
                             else
                             {
                                 double StockDecayTime = DecayManager.StockDecayTimePrediction(vessel);
-                                double DaysInYear = 0;
-                                bool KerbinTime = GameSettings.KERBIN_TIME;
-
-                                if (KerbinTime == true)
-                                {
-                                    DaysInYear = 9203545 / (60 * 60 * HoursInDay);
-                                }
-                                else
-                                {
-                                    DaysInYear = 31557600 / (60 * 60 * HoursInDay);
-                                }
 
                                 if (StockDecayTime < 0)
                                 {
@@ -328,36 +324,6 @@ namespace WhitecatIndustries
                                         GUILayout.Label("Approximate Time Until Decay: " + StockDecayTime.ToString("F1") + " days.");
                                     }
                                 }
-
-                                /*
-                                DecayNumberX = (((DecayManager.DecayRateStock(vessel) * 60 * 60 * HoursInDay) / TimeWarp.CurrentRate));
-
-
-                                DecayRateX = DecayNumberX;
-                                double DecayTime = (((VesselData.FetchSMA(vessel)) - (vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.orbit.referenceBody.atmosphereDepth)) / ((DecayRateX)));
-
-                                if (DecayTime < 0)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: Decay Imminent");
-                                }
-
-                                if (DecayTime >= 0 && DecayTime <= 365 && HoursInDay == 24)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
-                                }
-                                else if (DecayTime > 365 && HoursInDay == 24)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (DecayTime / 365).ToString("F1") + " years.");
-                                }
-                                if (DecayTime >= 0 && DecayTime <= 425 && HoursInDay == 6)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
-                                }
-                                else if (DecayTime > 425 && HoursInDay == 6)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (DecayTime / 425).ToString("F1") + " years.");
-                                }
-                                 * */
                             }
                         }
                         else
@@ -382,10 +348,16 @@ namespace WhitecatIndustries
                                 else
                                 {
 
-                                    if (DecayTime < 0)
+                                    if (DecayTime < 0 && DecayTime >= -500)
                                     {
                                         GUILayout.Label("Approximate Time Until Decay: Decay Imminent");
                                     }
+
+                                    else if (DecayTime < -500) // Used for SRP decay
+                                    {
+                                        GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
+                                    }
+
                                     if (DecayTime >= 0 && DecayTime <= 365 && HoursInDay == 24)
                                     {
                                         GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
@@ -408,17 +380,6 @@ namespace WhitecatIndustries
                             else
                             {
                                 double StockDecayTime = DecayManager.StockDecayTimePrediction(vessel);
-                                double DaysInYear = 0;
-                                bool KerbinTime = GameSettings.KERBIN_TIME;
-
-                                if (KerbinTime == true)
-                                {
-                                    DaysInYear = 9203545 / (60 * 60 * HoursInDay);
-                                }
-                                else
-                                {
-                                    DaysInYear = 31557600 / (60 * 60 * HoursInDay);
-                                }
 
                                 if ((StockDecayTime / DaysInYear) > 1000)
                                 {
@@ -456,31 +417,39 @@ namespace WhitecatIndustries
 
                         double StationKeepingLifetime = (double.Parse(StationKeepingFuelRemaining) / ((DecayRateSKL / TimeWarp.CurrentRate) * ResourceManager.GetEfficiency(Resource))) / (60 * 60 * HoursInDay);
 
-                        if (StationKeepingLifetime > 365000 && HoursInDay == 24)
-                        {
-                            GUILayout.Label("Station Keeping Fuel Lifetime: > 1000 years.");
-                        }
-
-                        else if (StationKeepingLifetime > 425000 && HoursInDay == 6)
+                        if (StationKeepingLifetime < -50) // SRP Fixes
                         {
                             GUILayout.Label("Station Keeping Fuel Lifetime: > 1000 years.");
                         }
 
                         else
                         {
-                            if (StationKeepingLifetime > 425 && HoursInDay == 6)
+                            if (StationKeepingLifetime > 365000 && HoursInDay == 24)
                             {
-                                GUILayout.Label("Station Keeping Fuel Lifetime: " + (StationKeepingLifetime / 425).ToString("F1") + " years.");
+                                GUILayout.Label("Station Keeping Fuel Lifetime: > 1000 years.");
                             }
 
-                            if (StationKeepingLifetime > 365 && HoursInDay == 24)
+                            else if (StationKeepingLifetime > 425000 && HoursInDay == 6)
                             {
-                                GUILayout.Label("Station Keeping Fuel Lifetime: " + (StationKeepingLifetime / 365).ToString("F1") + " years.");
+                                GUILayout.Label("Station Keeping Fuel Lifetime: > 1000 years.");
                             }
 
                             else
                             {
-                                GUILayout.Label("Station Keeping Fuel Lifetime: " + StationKeepingLifetime.ToString("F1") + " days.");
+                                if (StationKeepingLifetime > 425 && HoursInDay == 6)
+                                {
+                                    GUILayout.Label("Station Keeping Fuel Lifetime: " + (StationKeepingLifetime / 425).ToString("F1") + " years.");
+                                }
+
+                                if (StationKeepingLifetime > 365 && HoursInDay == 24)
+                                {
+                                    GUILayout.Label("Station Keeping Fuel Lifetime: " + (StationKeepingLifetime / 365).ToString("F1") + " years.");
+                                }
+
+                                else
+                                {
+                                    GUILayout.Label("Station Keeping Fuel Lifetime: " + StationKeepingLifetime.ToString("F1") + " days.");
+                                }
                             }
                         }
                         GUILayout.Space(3);

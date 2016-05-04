@@ -45,6 +45,9 @@ namespace WhitecatIndustries
         public static bool VesselMoving = false;
         public static double TimeOfLastMovement = 0.0;
 
+        private float UPTInterval = 1.0f;
+        private float lastUpdate = 0.0f;
+
         public void Awake()
         {
             VesselInformation.ClearNodes();
@@ -68,31 +71,36 @@ namespace WhitecatIndustries
         {
             if (Time.timeSinceLevelLoad > 0.5)
             {
-                if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING || HighLogic.LoadedScene != GameScenes.LOADINGBUFFER))
+                if ((Time.time - lastUpdate) > UPTInterval) // 1.4.0 Lag Busting
                 {
-                    Vessel vessel = new Vessel();
-                    for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
-                    {
-                        vessel = FlightGlobals.Vessels.ElementAt(i);
-                        if ((vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown))
-                        {
-                            if (CheckIfContained(vessel) == true)
-                            {
-                                if (vessel.situation != Vessel.Situations.ORBITING)
-                                {
-                                    ClearVesselData(vessel);
-                                }
+                    lastUpdate = Time.time;
 
-                                if (vessel.situation == Vessel.Situations.ORBITING)
-                                {
-                                    WriteVesselData(vessel);
-                                }
-                            }
-                            else if (CheckIfContained(vessel) == false)
+                    if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING || HighLogic.LoadedScene != GameScenes.LOADINGBUFFER))
+                    {
+                        Vessel vessel = new Vessel();
+                        for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
+                        {
+                            vessel = FlightGlobals.Vessels.ElementAt(i);
+                            if ((vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown))
                             {
-                                if (vessel.situation == Vessel.Situations.ORBITING)
+                                if (CheckIfContained(vessel) == true)
                                 {
-                                    WriteVesselData(vessel);
+                                    if (vessel.situation != Vessel.Situations.ORBITING)
+                                    {
+                                        ClearVesselData(vessel);
+                                    }
+
+                                    if (vessel.situation == Vessel.Situations.ORBITING)
+                                    {
+                                        WriteVesselData(vessel);
+                                    }
+                                }
+                                else if (CheckIfContained(vessel) == false)
+                                {
+                                    if (vessel.situation == Vessel.Situations.ORBITING)
+                                    {
+                                        WriteVesselData(vessel);
+                                    }
                                 }
                             }
                         }
@@ -357,7 +365,7 @@ namespace WhitecatIndustries
         {
             ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
-            double SMA = 0.0f;
+            double SMA = 0.0;
 
             foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
             {
@@ -369,7 +377,7 @@ namespace WhitecatIndustries
 
                 if (Vesselfound == true)
                 {
-                    SMA = float.Parse(Vessel.GetValue("SMA"));
+                    SMA = double.Parse(Vessel.GetValue("SMA"));
                     break;
                 }
             }
@@ -506,144 +514,6 @@ namespace WhitecatIndustries
                 }
             }
             print("Area: " + Area);
-            return Area;
-        }
-
-       /* public static double FetchEngineISP(Vessel vessel) // Resource and Engine management 1.2.0
-        {
-            ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-            float ISP = 1.0f;
-
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    if (Vessel.nodes.Count != 0)
-                    {
-                        double MaxISP = 0.0;
-                        foreach (ConfigNode Engine in Vessel.GetNodes("ENGINE"))
-                        {
-                            if (double.Parse(Engine.GetValue("ISP")) > MaxISP)
-                            {
-                                MaxISP = double.Parse(Engine.GetValue("ISP"));
-                            }
-                        }
-                        ISP = (float)MaxISP;
-                    }
-                }
-            }
-            return ISP;
-        }
-
-        public static void UpdateEngineInfo(Vessel vessel, string Name, string EngineId, float ISP, bool Operational)
-        {
-            ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-            bool Enginefound = false;
-
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    if (Vessel.nodes.Count != 0)
-                    {
-                        foreach (ConfigNode Engine in Vessel.GetNodes("ENGINE"))
-                        {
-                            if (Engine.GetValue("ID") == EngineId)
-                            {
-                                Enginefound = true;
-                            }
-
-                            if (Enginefound == true)
-                            {
-                                Engine.SetValue("ISP", ISP.ToString());
-                                break;
-                            }
-                        }
-                    }
-
-                    if (Enginefound == false)
-                    {
-                        AddEngineInfo(vessel, Name, EngineId, ISP, Operational);
-                    }
-                }
-            }
-        }
-
-        public static void AddEngineInfo(Vessel vessel, string Name, string EngineId, float ISP, bool Operational)
-        {
-            ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-            bool Enginefound = false;
-
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    if (Vessel.nodes.Count != 0)
-                    {
-                        foreach (ConfigNode Engine in Vessel.GetNodes("ENGINE"))
-                        {
-                            if (Engine.GetValue("ID") == EngineId)
-                            {
-                                Enginefound = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (Enginefound == false)
-                    {
-                        ConfigNode NewEngine = new ConfigNode("ENGINE");
-                        NewEngine.AddValue("Name", Name);
-                        NewEngine.AddValue("ID", EngineId);
-                        NewEngine.AddValue("ISP", ISP);
-                        Vessel.AddNode(NewEngine);
-                    }
-                }
-            }
-        }
-       */
-
-        // 1.2.0 new area and mass functions 
-
-        public static List<ProtoPartSnapshot> VesselPartsSS(Vessel vessel)
-        {
-            List<ProtoPartSnapshot> SnapShot;
-            SnapShot = vessel.protoVessel.protoPartSnapshots;
-            return SnapShot;
-        }
-
-        public static double FetchPPSSArea(Vessel vessel)
-        {
-            double Area = 0;
-            double TotalSize = 0;
-            List<ProtoPartSnapshot> Parts = VesselPartsSS(vessel);
-            foreach (ProtoPartSnapshot SS in Parts)
-            {
-                TotalSize = TotalSize + SS.partInfo.partSize;
-            }
-
-            Area = TotalSize / 2.0;
             return Area;
         }
     }
