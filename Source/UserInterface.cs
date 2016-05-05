@@ -122,7 +122,7 @@ namespace WhitecatIndustries
                         ToolbarButton.toggleButton.Value = false;
                 }
                 GUILayout.BeginVertical();
-                GUILayout.Space(15);
+                GUILayout.Space(10);
                 GUILayout.BeginHorizontal();
 
                 for (int i = 0; i < tabs.Length; ++i)
@@ -157,13 +157,16 @@ namespace WhitecatIndustries
         public void InformationTab()
         {
             GUILayout.BeginHorizontal();
+            GUI.skin.label.fontSize = 16;
+            GUI.skin.label.alignment = TextAnchor.MiddleCenter;
+            GUILayout.Label("Vessel Information", GUILayout.Width(290));
             GUI.skin.label.alignment = TextAnchor.MiddleLeft;
-            GUILayout.Label("Information", GUILayout.Width(290));
+            GUI.skin.label.fontSize = 12;
             GUILayout.EndHorizontal();
-            GUILayout.Space(5);
 
             GUILayout.BeginVertical();
             GUILayout.Space(3);
+            GUILayout.Label("____________________________________");
             GUILayout.EndVertical();
 
             scrollPosition1 = GUILayout.BeginScrollView(scrollPosition1, GUILayout.Width(290), GUILayout.Height(480));
@@ -212,18 +215,17 @@ namespace WhitecatIndustries
                     }
 
                     GUILayout.BeginVertical();
-                    GUILayout.Space(3);
                     GUILayout.Label("Vessel Name: " + vessel.vesselName);
-                    GUILayout.Space(3);
+                    GUILayout.Space(2);
                     GUILayout.Label("Orbiting Body: " + vessel.orbitDriver.orbit.referenceBody.GetName());
-                    GUILayout.Space(3);
+                    GUILayout.Space(2);
 
                     if (StationKeeping == "True")
                     {
                         GUILayout.Label("Current Decay Rate: Vessel is Station Keeping");
-                        GUILayout.Space(3);
+                        GUILayout.Space(2);
                         GUILayout.Label("Approximate Time Until Decay: Vessel is Station Keeping");
-                        GUILayout.Space(3);
+                        GUILayout.Space(2);
                     }
                     else
                     {
@@ -270,7 +272,7 @@ namespace WhitecatIndustries
                             GUILayout.Label("Current Decay Rate: " + (DecayRate/1000).ToString("F1") + "Km per day");
                         }
                        
-                        GUILayout.Space(3);
+                        GUILayout.Space(2);
 
                         if (vessel.orbitDriver.orbit.referenceBody.atmosphere)
                         {
@@ -396,13 +398,13 @@ namespace WhitecatIndustries
                                 }
                             }
                         }
-                        GUILayout.Space(3);
+                        GUILayout.Space(2);
                     }
 
                     GUILayout.Label("Station Keeping: " + StationKeeping);
-                    GUILayout.Space(3);
+                    GUILayout.Space(2);
                     GUILayout.Label("Station Keeping Fuel Remaining: " + StationKeepingFuelRemaining);
-                    GUILayout.Space(3);
+                    GUILayout.Space(2);
                     if (StationKeeping == "True")
                     {
                         double DecayRateSKL = 0;
@@ -484,7 +486,8 @@ namespace WhitecatIndustries
                             }
                         }
                     }
-
+                    GUILayout.Space(2);
+                    GUILayout.Label("____________________________________");
                     GUILayout.Space(3);
                     GUILayout.EndVertical();
                 }
@@ -497,12 +500,16 @@ namespace WhitecatIndustries
         {
             
             GUILayout.BeginHorizontal();
+            GUI.skin.label.fontSize = 16;
+            GUI.skin.label.alignment = TextAnchor.MiddleCenter;
+            GUILayout.Label("Plugin Settings", GUILayout.Width(290));
             GUI.skin.label.alignment = TextAnchor.MiddleLeft;
-            GUILayout.Label("Settings", GUILayout.Width(290));
+            GUI.skin.label.fontSize = 12;
             GUILayout.EndHorizontal();
-            GUILayout.Space(5);
+
             GUILayout.BeginVertical();
-            GUILayout.Space(10);
+            GUILayout.Label("____________________________________");
+            GUILayout.Space(3);
 
             var DecayDifficulty = Settings.ReadDecayDifficulty();
             var ResourceDifficulty = Settings.ReadResourceRateDifficulty();
@@ -520,7 +527,7 @@ namespace WhitecatIndustries
                 }
             }
            */
-            GUILayout.Space(3);
+            GUILayout.Space(2);
             if (GUILayout.Button("Toggle Kerbin Day (6 hour) / Earth Day (24 hour)"))
             {
                 Settings.Write24H(!Settings.Read24Hr());
@@ -534,7 +541,7 @@ namespace WhitecatIndustries
                 }
                 
             }
-            GUILayout.Space(3);
+            GUILayout.Space(2);
             if (GUILayout.Button("Toggle Planetarium Updating"))
             {
                 Settings.WritePlanetariumTracking(!Settings.ReadPT());
@@ -550,7 +557,7 @@ namespace WhitecatIndustries
 
             if (Settings.ReadPT() == true)
             {
-                GUILayout.Space(3);
+                GUILayout.Space(2);
                 if (GUILayout.Button("Toggle Debris Updating"))
                 {
                     Settings.WritePDebrisTracking(!Settings.ReadDT());
@@ -566,14 +573,14 @@ namespace WhitecatIndustries
 
             }
 
-            GUILayout.Space(6);
+            GUILayout.Space(3);
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             MultiplierValue = GUILayout.HorizontalSlider(MultiplierValue, 0.5f, 50.0f);
-            GUILayout.Space(3);
+            GUILayout.Space(2);
             GUILayout.Label("Current Decay multiplier: " + (DecayDifficulty).ToString("F1"));
-            GUILayout.Space(3); 
+            GUILayout.Space(2); 
             GUILayout.Label("New Decay multiplier: " + (MultiplierValue/5).ToString("F1"));
-            GUILayout.Space(3); 
+            GUILayout.Space(2); 
 
             if (GUILayout.Button("Set Multiplier"))
             {
@@ -581,9 +588,11 @@ namespace WhitecatIndustries
                 ScreenMessages.PostScreenMessage("Decay Multiplier set to: " + (MultiplierValue/5));
             }
 
+            GUILayout.Space(2);
+            GUILayout.Label("____________________________________");
             GUILayout.Space(3);
 
-            scrollPosition3 = GUILayout.BeginScrollView(scrollPosition3, GUILayout.Width(290), GUILayout.Height(80));
+            scrollPosition3 = GUILayout.BeginScrollView(scrollPosition3, GUILayout.Width(290), GUILayout.Height(100));
             for (int i = 0; i < PartResourceLibrary.Instance.resourceDefinitions.ToList().Count; i++)
             {
                 string Resource = PartResourceLibrary.Instance.resourceDefinitions.ToList().ElementAt(i).name;
@@ -614,14 +623,16 @@ namespace WhitecatIndustries
             }
             GUILayout.EndScrollView();
             GUILayout.Label("Note: Changing resources requires switching to each Station Keeping vessel");
+            GUILayout.Space(2);
+            GUILayout.Label("____________________________________");
             GUILayout.Space(3);
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             MultiplierValue2 = GUILayout.HorizontalSlider(MultiplierValue2, 0.5f, 50.0f);
-            GUILayout.Space(3);
+            GUILayout.Space(2);
             GUILayout.Label("Resource drain rate multiplier: " + ResourceDifficulty);
-            GUILayout.Space(3);
+            GUILayout.Space(2);
             GUILayout.Label("New Resource drain rate multiplier: " + (MultiplierValue2 / 5).ToString("F1"));
-            GUILayout.Space(3);
+            GUILayout.Space(2);
 
             if (GUILayout.Button("Set Multiplier"))
             {
