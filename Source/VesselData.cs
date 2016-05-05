@@ -166,7 +166,11 @@ namespace WhitecatIndustries
 
                     if (VesselMoving == false && (HighLogic.CurrentGame.UniversalTime - TimeOfLastMovement) < 1 && VesselMovementUpdate == false)
                     {
-                        UpdateVesselSMA(vessel, (float)vessel.orbitDriver.orbit.semiMajorAxis);
+                        UpdateVesselSMA(vessel, vessel.orbitDriver.orbit.semiMajorAxis);
+
+
+
+
                         VesselMovementUpdate = true;
                     }
                 }
@@ -247,6 +251,14 @@ namespace WhitecatIndustries
             }
             newVessel.AddValue("ReferenceBody", vessel.orbitDriver.orbit.referenceBody.GetName());
             newVessel.AddValue("SMA", vessel.GetOrbitDriver().orbit.semiMajorAxis);
+
+            newVessel.AddValue("ECC", vessel.GetOrbitDriver().orbit.eccentricity);       // 1.4.0 greater information.
+            newVessel.AddValue("INC", vessel.GetOrbitDriver().orbit.inclination);
+            newVessel.AddValue("LPE", vessel.GetOrbitDriver().orbit.argumentOfPeriapsis);
+            newVessel.AddValue("LAN", vessel.GetOrbitDriver().orbit.LAN);
+            newVessel.AddValue("MNA", vessel.GetOrbitDriver().orbit.meanAnomalyAtEpoch);
+            newVessel.AddValue("EPH", vessel.GetOrbitDriver().orbit.epoch);
+
             newVessel.AddValue("StationKeeping", false.ToString());
             newVessel.AddValue("Fuel", ResourceManager.GetResources(vessel, ResourceName));
             newVessel.AddValue("DryFuel", ResourceManager.GetResources(vessel, ResourceName));
@@ -388,6 +400,271 @@ namespace WhitecatIndustries
 
             return SMA;
         }
+
+        public static void UpdateVesselECC(Vessel vessel, double ECC)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    Vessel.SetValue("ECC", ECC.ToString());
+                    break;
+                }
+            }
+        }
+        public static double FetchECC(Vessel vessel)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+            double ECC = 0.0;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    ECC = double.Parse(Vessel.GetValue("ECC"));
+                    break;
+                }
+            }
+
+            return ECC;
+        }
+
+        public static void UpdateVesselINC(Vessel vessel, double INC)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    Vessel.SetValue("INC", INC.ToString());
+                    break;
+                }
+            }
+        }
+        public static double FetchINC(Vessel vessel)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+            double INC = 0.0;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    INC = double.Parse(Vessel.GetValue("INC"));
+                    break;
+                }
+            }
+
+            return INC;
+        }
+
+        public static void UpdateVesselLPE(Vessel vessel, double LPE)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    Vessel.SetValue("LPE", LPE.ToString());
+                    break;
+                }
+            }
+        }
+        public static double FetchLPE(Vessel vessel)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+            double LPE = 0.0;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    LPE = double.Parse(Vessel.GetValue("LPE"));
+                    break;
+                }
+            }
+
+            return LPE;
+        }
+
+        public static void UpdateVesselLAN(Vessel vessel, double LAN)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    Vessel.SetValue("LAN", LAN.ToString());
+                    break;
+                }
+            }
+        }
+        public static double FetchLAN(Vessel vessel)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+            double LAN = 0.0;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    LAN = double.Parse(Vessel.GetValue("LAN"));
+                    break;
+                }
+            }
+
+            return LAN;
+        }
+
+        public static void UpdateVesselMNA(Vessel vessel, double MNA)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    Vessel.SetValue("MNA", MNA.ToString());
+                    break;
+                }
+            }
+        }
+        public static double FetchMNA(Vessel vessel)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+            double MNA = 0.0;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    MNA = double.Parse(Vessel.GetValue("MNA"));
+                    break;
+                }
+            }
+
+            return MNA;
+        }
+
+        public static void UpdateVesselEPH(Vessel vessel, double EPH)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    Vessel.SetValue("EPH", EPH.ToString());
+                    break;
+                }
+            }
+        }
+        public static double FetchEPH(Vessel vessel)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+            double EPH = 0.0;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    EPH = double.Parse(Vessel.GetValue("EPH"));
+                    break;
+                }
+            }
+
+            return EPH;
+        }
+
 
         public static float FetchFuel(Vessel vessel)
         {
