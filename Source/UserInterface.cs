@@ -435,7 +435,7 @@ namespace WhitecatIndustries
                             DecayRateSKL = (DecayManager.DecayRateStock(vessel));
                         }
 
-                        double StationKeepingLifetime = (double.Parse(StationKeepingFuelRemaining) / ((DecayRateSKL / TimeWarp.CurrentRate) * ResourceManager.GetEfficiency(Resource))) / (60 * 60 * HoursInDay);
+                        double StationKeepingLifetime = (double.Parse(StationKeepingFuelRemaining) / ((DecayRateSKL / TimeWarp.CurrentRate) * ResourceManager.GetEfficiency(Resource) * Settings.ReadResourceRateDifficulty())) / (60 * 60 * HoursInDay);
 
                         if (StationKeepingLifetime < -50) // SRP Fixes
                         {
