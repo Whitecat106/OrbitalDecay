@@ -259,7 +259,25 @@ namespace WhitecatIndustries
 
                         else if (DecayRate <= 0.000000001 && Math.Sign(DecayRate) == -1 && !vessel.orbitDriver.orbit.referenceBody.atmosphere)
                         {
-                            GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 1000)).ToString("F1") + "mm per year");
+                            if (Math.Abs(DecayRate * DaysInYear * 1000) > 10 && Math.Abs(DecayRate * DaysInYear * 1000) <= 1000)
+                            {
+                                GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 100)).ToString("F1") + "cm per year");
+                            }
+
+                            if (Math.Abs(DecayRate * DaysInYear * 1000) > 1000 && Math.Abs(DecayRate * DaysInYear * 1000) <= 1000000)
+                            {
+                                GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 10)).ToString("F1") + "m per year");
+                            }
+
+                            if (Math.Abs(DecayRate * DaysInYear * 1000) > 1000000)
+                            {
+                                GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 1)).ToString("F1") + "Km per year");
+                            }
+
+                            if (Math.Abs(DecayRate * DaysInYear * 1000 ) < 10)
+                            {
+                                GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 1000)).ToString("F1") + "mm per year");
+                            }
                         }
 
                         else if (DecayRate > 0.000000001 && DecayRate < 1000)
@@ -502,7 +520,7 @@ namespace WhitecatIndustries
             GUILayout.BeginHorizontal();
             GUI.skin.label.fontSize = 16;
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
-            GUILayout.Label("Plugin Settings", GUILayout.Width(290));
+            GUILayout.Label("Control Panel", GUILayout.Width(290));
             GUI.skin.label.alignment = TextAnchor.MiddleLeft;
             GUI.skin.label.fontSize = 12;
             GUILayout.EndHorizontal();
@@ -612,7 +630,7 @@ namespace WhitecatIndustries
                             Vessel vessel = FlightGlobals.Vessels.ElementAt(j);
                             if (vessel.situation == Vessel.Situations.ORBITING && vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown)
                             {
-                                //VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Resource));
+                                VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Resource));
                                 VesselData.UpdateDryFuel(vessel, ResourceManager.GetDryResources(vessel, Resource));
                             }
                         }

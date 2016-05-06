@@ -93,6 +93,7 @@ namespace WhitecatIndustries
                 Settings.WriteDifficulty(1.0);
                 Settings.Write24H(false);
                 Settings.WriteRD(false);
+                Settings.WritePlanetariumTracking(true);
                 RealSolar = false;
             }
         }

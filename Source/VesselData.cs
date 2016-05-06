@@ -167,9 +167,12 @@ namespace WhitecatIndustries
                     if (VesselMoving == false && (HighLogic.CurrentGame.UniversalTime - TimeOfLastMovement) < 1 && VesselMovementUpdate == false)
                     {
                         UpdateVesselSMA(vessel, vessel.orbitDriver.orbit.semiMajorAxis);
-
-
-
+                        UpdateVesselECC(vessel, vessel.orbitDriver.orbit.eccentricity);
+                        UpdateVesselINC(vessel, vessel.orbitDriver.orbit.inclination);
+                        UpdateVesselEPH(vessel, vessel.orbitDriver.orbit.epoch);
+                        UpdateVesselLAN(vessel, vessel.orbitDriver.orbit.LAN);
+                        UpdateVesselMNA(vessel, vessel.orbitDriver.orbit.meanAnomalyAtEpoch);
+                        UpdateVesselLPE(vessel, vessel.orbitDriver.orbit.argumentOfPeriapsis);
 
                         VesselMovementUpdate = true;
                     }
@@ -201,10 +204,9 @@ namespace WhitecatIndustries
                 VesselNode.SetValue("Mass", (vessel.GetTotalMass() * 1000).ToString());
                 VesselNode.SetValue("Area", (CalculateVesselArea(vessel)).ToString());
                 VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel, ResourceName)).ToString());
-                VesselNode.SetValue("DryFuel", (ResourceManager.GetResources(vessel,ResourceName)).ToString()); // Dry Resources broken?
+                VesselNode.SetValue("DryFuel", (ResourceManager.GetDryResources(vessel,ResourceName)).ToString()); 
             }
         }
-
 
         public static void ClearVesselData(Vessel vessel)
         {
@@ -261,7 +263,7 @@ namespace WhitecatIndustries
 
             newVessel.AddValue("StationKeeping", false.ToString());
             newVessel.AddValue("Fuel", ResourceManager.GetResources(vessel, ResourceName));
-            newVessel.AddValue("DryFuel", ResourceManager.GetResources(vessel, ResourceName));
+            newVessel.AddValue("DryFuel", ResourceManager.GetDryResources(vessel, ResourceName)); // 1.4.0 Resource Fix
 
             return newVessel; 
         }
@@ -311,6 +313,7 @@ namespace WhitecatIndustries
             }
             return Mass;
         }
+
         public static double FetchArea(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
@@ -333,7 +336,6 @@ namespace WhitecatIndustries
             }
             return Area;
         }
-
 
         public static void UpdateStationKeeping(Vessel vessel, bool StationKeeping)
         {
@@ -377,6 +379,7 @@ namespace WhitecatIndustries
                 }
             }
         }
+
         public static double FetchSMA(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
@@ -406,6 +409,11 @@ namespace WhitecatIndustries
             ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
 
+            if (double.IsNaN(ECC)) // No NANs here please!
+            {
+                ECC = 0.0;
+            }
+
             foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
             {
                 string id = Vessel.GetValue("id");
@@ -421,6 +429,7 @@ namespace WhitecatIndustries
                 }
             }
         }
+
         public static double FetchECC(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
@@ -441,7 +450,10 @@ namespace WhitecatIndustries
                     break;
                 }
             }
-
+            if (double.IsNaN(ECC)) // No NANs here please!
+            {
+                ECC = 0.0;
+            }
             return ECC;
         }
 
@@ -465,6 +477,7 @@ namespace WhitecatIndustries
                 }
             }
         }
+
         public static double FetchINC(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
@@ -509,6 +522,7 @@ namespace WhitecatIndustries
                 }
             }
         }
+
         public static double FetchLPE(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
@@ -553,6 +567,7 @@ namespace WhitecatIndustries
                 }
             }
         }
+
         public static double FetchLAN(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
@@ -597,6 +612,7 @@ namespace WhitecatIndustries
                 }
             }
         }
+
         public static double FetchMNA(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
@@ -641,6 +657,7 @@ namespace WhitecatIndustries
                 }
             }
         }
+
         public static double FetchEPH(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
@@ -665,12 +682,11 @@ namespace WhitecatIndustries
             return EPH;
         }
 
-
-        public static float FetchFuel(Vessel vessel)
+        public static double FetchFuel(Vessel vessel)
         {
             ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
-            float Fuel = 0.0f;
+            double Fuel = 0.0;
 
             foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
             {
@@ -712,7 +728,7 @@ namespace WhitecatIndustries
             return Fuel;
         }
 
-        public static void UpdateDryFuel(Vessel vessel, float fuel)
+        public static void UpdateDryFuel(Vessel vessel, double fuel)
         {
             ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
@@ -755,7 +771,7 @@ namespace WhitecatIndustries
         }
 
 
-        public static void UpdateVesselFuel(Vessel vessel, float Fuel)
+        public static void UpdateVesselFuel(Vessel vessel, double Fuel)
         {
             ConfigNode Data = VesselInformation;
             bool Vesselfound = false;

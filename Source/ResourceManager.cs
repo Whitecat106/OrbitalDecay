@@ -50,42 +50,48 @@ namespace WhitecatIndustries
             VesselData.UpdateDryFuel(vessel,VesselData.FetchFuel(vessel));
         }
 
-        public static float GetResources(Vessel vessel, string resource)
+        public static double GetResources(Vessel vessel, string resource)
         {
-            float quantity = 0.0f;
+            double quantity = 0.0;
             int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
-            bool Skip = false;
-            List<PartResource> resources = new List<PartResource>();
-            try
+
+            ProtoVessel proto = vessel.protoVessel;
+
+            foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
             {
-                vessel.rootPart.GetConnectedResources(MonoPropId, ResourceFlowMode.STACK_PRIORITY_SEARCH, resources);
-            }
-            catch (NullReferenceException)
-            {
-                Skip = true;
-            }
-            if (resources.Count != 0 && Skip == false)
-            {
-                foreach (PartResource res in resources)
+                foreach (ProtoPartResourceSnapshot protopartresourcesnapshot in protopart.resources)
                 {
-                    if (res.info.id == MonoPropId)
+                    if (protopartresourcesnapshot.resourceName == resource)
                     {
-                        quantity = quantity + (float)res.amount;
+                        if (bool.Parse(protopartresourcesnapshot.resourceValues.GetValue("flowState")) == true) // Fixed resource management 1.4.0
+                        {
+                            quantity = quantity + double.Parse(protopartresourcesnapshot.resourceValues.GetValue("amount"));
+                        }
                     }
                 }
             }
+
             return quantity;
         }
 
-        public static float GetDryResources(Vessel vessel, string resource) // Fix this
+        public static double GetDryResources(Vessel vessel, string resource) // Fix this
         {
-            float quantity = 0.0f;
+            double quantity = 0.0;
 
             int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
             List<PartResource> resources = new List<PartResource>();
-           foreach (Part part in vessel.parts) 
+
+            ProtoVessel proto = vessel.protoVessel;
+
+            foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
             {
-                quantity = quantity + (float)part.Resources.Get(MonoPropId).maxAmount;
+                foreach (ProtoPartResourceSnapshot protopartresourcesnapshot in protopart.resources)
+                {
+                    if (protopartresourcesnapshot.resourceName == resource)
+                    {
+                            quantity = quantity + double.Parse(protopartresourcesnapshot.resourceValues.GetValue("maxAmount"));
+                    }
+                }
             }
             return quantity;
         }
@@ -100,12 +106,12 @@ namespace WhitecatIndustries
             }
             else
             {
-                Efficiency = resourceDef.density;
+                Efficiency = resourceDef.density * 0.09f;
             }
             return Efficiency;
         }
 
-        public static List<PartResource> GetVesselPartResources(Vessel vessel) //1.2.0
+        public static List<PartResource> GetVesselPartResources(Vessel vessel) //1.5.0
         {
             PartResourceList List;
             List<PartResource> UsableResources = new List<PartResource>();

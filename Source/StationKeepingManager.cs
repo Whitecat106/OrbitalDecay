@@ -112,7 +112,7 @@ namespace WhitecatIndustries
             
             ResourceName = Settings.ReadStationKeepingResource();
 
-            float CurrentFuel = VesselData.FetchFuel(vessel);
+            double CurrentFuel = VesselData.FetchFuel(vessel);
             float ResourceEfficiency = ResourceManager.GetEfficiency(ResourceName);
             float LostFuel = 0.0f;
             if (Settings.ReadRD() == true)
@@ -124,7 +124,7 @@ namespace WhitecatIndustries
                 LostFuel = (float)DecayManager.DecayRateStock(vessel) * (float)Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
             }
 
-            float FuelNew = CurrentFuel - LostFuel;
+            double FuelNew = CurrentFuel - LostFuel;
 
             if (EngineCheck(vessel) == false) // 1.3.0
             {
