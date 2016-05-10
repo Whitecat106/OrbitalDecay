@@ -461,7 +461,7 @@ namespace WhitecatIndustries
                                     GUILayout.Label("Station Keeping Fuel Lifetime: " + (StationKeepingLifetime / 425).ToString("F1") + " years.");
                                 }
 
-                                if (StationKeepingLifetime > 365 && HoursInDay == 24)
+                                else if (StationKeepingLifetime > 365 && HoursInDay == 24)
                                 {
                                     GUILayout.Label("Station Keeping Fuel Lifetime: " + (StationKeepingLifetime / 365).ToString("F1") + " years.");
                                 }
@@ -603,7 +603,7 @@ namespace WhitecatIndustries
             if (GUILayout.Button("Set Multiplier"))
             {
                 Settings.WriteDifficulty(MultiplierValue/5);
-                ScreenMessages.PostScreenMessage("Decay Multiplier set to: " + (MultiplierValue/5));
+                ScreenMessages.PostScreenMessage("Decay Multiplier set to: " + ((MultiplierValue/5).ToString("F2")));
             }
 
             GUILayout.Space(2);
@@ -647,7 +647,7 @@ namespace WhitecatIndustries
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             MultiplierValue2 = GUILayout.HorizontalSlider(MultiplierValue2, 0.5f, 50.0f);
             GUILayout.Space(2);
-            GUILayout.Label("Resource drain rate multiplier: " + ResourceDifficulty);
+            GUILayout.Label("Resource drain rate multiplier: " + (ResourceDifficulty.ToString("F1")));
             GUILayout.Space(2);
             GUILayout.Label("New Resource drain rate multiplier: " + (MultiplierValue2 / 5).ToString("F1"));
             GUILayout.Space(2);
@@ -655,7 +655,7 @@ namespace WhitecatIndustries
             if (GUILayout.Button("Set Multiplier"))
             {
                 Settings.WriteResourceRateDifficulty(MultiplierValue2 / 5);
-                ScreenMessages.PostScreenMessage("Resource drain rate multiplier: " + (MultiplierValue2 / 5));
+                ScreenMessages.PostScreenMessage("Resource drain rate multiplier: " + ((MultiplierValue2 / 5).ToString("F1")));
             }
 
             GUILayout.EndVertical();

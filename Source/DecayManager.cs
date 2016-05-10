@@ -49,6 +49,7 @@ namespace WhitecatIndustries
         public static double VesselCount = 0;
         public static Vessel ActiveVessel = new Vessel();
         public static bool ActiveVesselOnOrbit = false;
+        public static bool EVAActive = false;
 
         public static bool CatchupResourceMassAreaDataComplete = false;
 
@@ -58,29 +59,33 @@ namespace WhitecatIndustries
 
         public void Start()
         {
-            if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING || HighLogic.LoadedScene != GameScenes.LOADINGBUFFER))
+            if (CheckSceneStateMain(HighLogic.LoadedScene))
             {
-                GameEvents.onVesselWillDestroy.Add(ClearVesselOnDestroy);
+                // GameEvents -- //
+
+                GameEvents.onVesselWillDestroy.Add(ClearVesselOnDestroy); // Vessel destroy checks 1.1.0
                 GameEvents.onVesselWasModified.Add(UpdateActiveVesselInformation); // Resource level change 1.3.0
                 GameEvents.onStageSeparation.Add(UpdateActiveVesselInformationEventReport); // Resource level change 1.3.0
-                if (HighLogic.LoadedScene == GameScenes.FLIGHT) // 1.3.1
+                GameEvents.onNewVesselCreated.Add(UpdateVesselSpawned); // New Vessel Checks 1.4.2
+
+                if (CheckSceneStateFlight(HighLogic.LoadedScene)) // 1.3.1
                 {
                     GameEvents.onPartActionUIDismiss.Add(UpdateActiveVesselInformationPart); // Resource level change 1.3.0
                     GameEvents.onPartActionUICreate.Add(UpdateActiveVesselInformationPart);
                 }
+
+                // -- GameEvents //
 
                 Vessel vessel = new Vessel();
                 VesselCount = FlightGlobals.Vessels.Count;
                 for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
                 {
                     vessel = FlightGlobals.Vessels.ElementAt(i);
-                    if ((vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown))
-                    {
-                        if (vessel.situation == Vessel.Situations.ORBITING)
+
+                        if (vessel.situation == Vessel.Situations.ORBITING) // || vessel.situation == Vessel.Situations.SUB_ORBITAL) // 1.4.2
                         {
-                            CatchUpOrbit(vessel);
+                                CatchUpOrbit(vessel);
                         }
-                    }
                 }
                 if (HighLogic.LoadedScene == GameScenes.FLIGHT) // 1.3.0
                 {
@@ -104,7 +109,7 @@ namespace WhitecatIndustries
 
         public void UpdateActiveVesselInformationPart(Part part) // Until eventdata OnPartResourceFlowState works! // 1.3.0
         {
-            if (part.vessel == FlightGlobals.ActiveVessel && TimeWarp.CurrentRate == 1)
+            if (part.vessel == FlightGlobals.ActiveVessel && TimeWarp.CurrentRate == 0) // 1.4.2 
             {
                 if (HighLogic.LoadedScene == GameScenes.FLIGHT) // 1.3.1
                 {
@@ -122,9 +127,116 @@ namespace WhitecatIndustries
             }
         }
 
+        public void UpdateVesselSpawned(Vessel vessel)
+        {
+            if (vessel.situation == Vessel.Situations.ORBITING)
+            {
+                VesselData.WriteVesselData(vessel);
+            }
+        }
+
         public void ClearVesselOnDestroy(Vessel vessel)
         {
             VesselData.ClearVesselData(vessel);
+        }
+
+        #endregion
+
+        #region Check Subroutines 
+
+        public static bool CheckSceneStateMain(GameScenes scene)
+        {
+            if (scene != GameScenes.LOADING && scene != GameScenes.LOADINGBUFFER && HighLogic.LoadedSceneIsGame)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool CheckSceneStateMainNotSpaceCentre(GameScenes scene)
+        {
+            if (scene != GameScenes.LOADING && scene != GameScenes.LOADINGBUFFER && HighLogic.LoadedSceneIsGame && scene != GameScenes.SPACECENTER)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool CheckSceneStateFlight(GameScenes scene)
+        {
+            if (scene == GameScenes.FLIGHT && (scene != GameScenes.LOADING && scene != GameScenes.LOADINGBUFFER && HighLogic.LoadedSceneIsGame))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool CheckVesselState(Vessel vessel)
+        {
+            if (vessel.situation == Vessel.Situations.ORBITING)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool CheckVesselStateActive(Vessel vessel)
+        {
+            if (vessel.situation == Vessel.Situations.ORBITING && vessel == FlightGlobals.ActiveVessel)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool CheckVesselActiveInScene(Vessel vessel)
+        {
+            if (vessel.situation == Vessel.Situations.ORBITING && vessel == FlightGlobals.ActiveVessel)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+        public static bool CheckVesselProximity(Vessel vessel)
+        {
+            bool close = false;
+            if (!vessel.packed)
+            {
+                foreach (Vessel v in FlightGlobals.Vessels)
+                {
+                    if (!v.packed && v!=vessel) // && (v.vesselType == VesselType.EVA || v.vesselType == VesselType.Debris))
+                    {
+                        close = true;
+                        break;
+                    }
+                }
+            }
+
+            return close;
         }
 
         #endregion
@@ -147,21 +259,7 @@ namespace WhitecatIndustries
             {
                 if ((Time.time - lastUpdate) > UPTInterval)
                 {
-                    lastUpdate = Time.time;
-
-                    double ObjectCount = FlightGlobals.Vessels.Count;
-                    if (ObjectCount != VesselCount)
-                    {
-                        VesselCount = ObjectCount;
-                        for (int h = 0; h < FlightGlobals.Vessels.Count; h++) // Debris write (frequent due to staging)
-                        {
-                            Vessel Debris = FlightGlobals.Vessels.ElementAt(h);
-                            if (Debris.FindDefaultVesselType() == VesselType.Debris)
-                            {
-                                VesselData.WriteVesselData(Debris);
-                            }
-                        }
-                    }
+                    lastUpdate = Time.time;   
 
                     if (HighLogic.LoadedScene == GameScenes.SPACECENTER || HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.FLIGHT)
                     {
@@ -169,9 +267,7 @@ namespace WhitecatIndustries
                         {
                             Vessel vessel = FlightGlobals.Vessels.ElementAt(i);
 
-                            if (vessel.situation == Vessel.Situations.ORBITING || (vessel.situation == Vessel.Situations.SUB_ORBITAL && vessel != FlightGlobals.ActiveVessel && vessel == vessel.packed)) // Fixes teleporting debris
-                            {
-                                if ((vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown))
+                            if ((vessel.situation == Vessel.Situations.ORBITING) || (vessel.situation == Vessel.Situations.SUB_ORBITAL && vessel != FlightGlobals.ActiveVessel && vessel == vessel.packed )) // Fixes teleporting debris
                                 {
                                     if (VesselData.FetchStationKeeping(vessel) == false)
                                     {
@@ -179,7 +275,7 @@ namespace WhitecatIndustries
                                         {
                                             RealisticDecaySimulator(vessel);
                                             
-                                            if (vessel == vessel.loaded) 
+                                            if (vessel == vessel.loaded && !CheckVesselProximity(vessel)) 
                                             {
                                                 if (Settings.ReadRD() == true)
                                                 {
@@ -212,7 +308,6 @@ namespace WhitecatIndustries
                         }
                     }
                 }
-                }
             }
         }
 
@@ -224,7 +319,8 @@ namespace WhitecatIndustries
                 for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
                 {
                     vessel = FlightGlobals.Vessels.ElementAt(i);
-                    if ((vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown))
+                    //if ((vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown)) // 1.4.2 fixes
+                    if (vessel.situation == Vessel.Situations.ORBITING)
                     {
                         CatchUpOrbit(vessel);
                     }
@@ -239,6 +335,8 @@ namespace WhitecatIndustries
                 GameEvents.onVesselWillDestroy.Remove(ClearVesselOnDestroy);
                 GameEvents.onVesselWasModified.Remove(UpdateActiveVesselInformation); // 1.3.0 Resource Change
                 GameEvents.onStageSeparation.Remove(UpdateActiveVesselInformationEventReport); // 1.3.0
+                GameEvents.onNewVesselCreated.Remove(UpdateVesselSpawned); // 1.4.2 
+
                 if (HighLogic.LoadedScene == GameScenes.FLIGHT) // 1.3.1
                 {
                     GameEvents.onPartActionUIDismiss.Remove(UpdateActiveVesselInformationPart); // 1.3.0
@@ -250,13 +348,10 @@ namespace WhitecatIndustries
                 for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
                 {
                     vessel = FlightGlobals.Vessels.ElementAt(i);
-                    if ((vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown))
-                    {
                         if (vessel.situation == Vessel.Situations.ORBITING)
                         {
                             CatchUpOrbit(vessel);
                         }
-                    }
                 }
             }
         }
@@ -283,7 +378,7 @@ namespace WhitecatIndustries
         public void ActiveVesselFuelManage(Vessel vessel)
         {
             bool StationKeep = VesselData.FetchStationKeeping(vessel);
-            if (StationKeep == true)
+            if (StationKeep == true && vessel.vesselType != VesselType.EVA)
             {
                 StationKeepingManager.FuelManager(vessel);
             }
@@ -293,7 +388,7 @@ namespace WhitecatIndustries
         {
             if (vessel.situation != Vessel.Situations.PRELAUNCH && vessel.situation != Vessel.Situations.LANDED)
             {
-                if (VesselData.FetchSMA(vessel) < vessel.GetOrbitDriver().orbit.semiMajorAxis)
+                if (VesselData.FetchSMA(vessel) < vessel.GetOrbitDriver().orbit.semiMajorAxis && CheckVesselProximity(vessel) == false)
                 {
                     try
                     {
@@ -579,19 +674,19 @@ namespace WhitecatIndustries
                     double VesselArea = VesselData.FetchArea(vessel);
                     if (VesselArea == 0)
                     {
-                        VesselArea = 1.0;
+                        VesselArea = 5.0;
                     }
 
                     double DistanceTravelled = InitialOrbitalVelocity; // Meters
                     double VesselMass = VesselData.FetchMass(vessel);   // Kg
                     if (VesselMass == 0)
                     {
-                        VesselMass = 100.0; // Default is 100kg
+                        VesselMass = 1000.0; // Default is 100kg
                     }
 
                     EquivalentAltitude = (EquivalentAltitude / 1000.0);
 
-                    double AtmosphericDensity = 1.020 * Math.Pow(10, 7) * Math.Pow(EquivalentAltitude, -7.172);
+                    double AtmosphericDensity = 1.020 * Math.Pow(10.0, 7.0) * Math.Pow(EquivalentAltitude + 70.0, -7.172);
                     double DeltaPeriod = ((3 * Math.PI) * (InitialSemiMajorAxis * AtmosphericDensity) * ((VesselArea * 2.2) / VesselMass)); // Unitless
                     double InitialPeriod = (2 * Math.PI * Math.Sqrt((Math.Pow(InitialSemiMajorAxis, (double)3.0)) / StandardGravitationalParameter));
                     double FinalPeriod = InitialPeriod - DeltaPeriod;
@@ -795,41 +890,63 @@ namespace WhitecatIndustries
             double decayForce = DeltaVelocity * (vessel.GetTotalMass());
             GameObject thisVessel = new GameObject();
             
-            if (TimeWarp.CurrentRate == 0 || (TimeWarp.CurrentRate > 0  && TimeWarp.WarpMode != TimeWarp.Modes.HIGH))
+            if (TimeWarp.CurrentRate == 0 || (TimeWarp.CurrentRate > 0  && TimeWarp.WarpMode == TimeWarp.Modes.LOW))
             {
-                foreach (Part p in vessel.parts)
+                if (vessel.vesselType != VesselType.EVA)
                 {
-                    if ((p.physicalSignificance == Part.PhysicalSignificance.FULL) &&
-                        (p.Rigidbody != null))
+                    foreach (Part p in vessel.parts)
                     {
-                        p.Rigidbody.AddForce(Vector3d.back * (decayForce)); // 1.4.0 makes periapsis rise
+                        if ((p.physicalSignificance == Part.PhysicalSignificance.FULL) &&
+                            (p.Rigidbody != null))
+                        {
+                            //p.Rigidbody.AddForce(Vector3d.back * (decayForce)); // 1.5.0
+                        }
                     }
-                }    
-                
+                }
             }
 
-            else if (TimeWarp.CurrentRate > 1 && TimeWarp.WarpMode != TimeWarp.Modes.LOW) // 1.3.0 Timewarp Fix
+            else if (TimeWarp.CurrentRate > 0 && TimeWarp.WarpMode != TimeWarp.Modes.LOW) // 1.3.0 Timewarp Fix
             {
                 bool MultipleLoadedSceneVessels = false; // 1.4.0 Debris warp fix
                 int Loadedcount = 0;
 
+                bool NearByEva = false;
+                List<Vessel> LoadedVesselList = new List<Vessel>();
+
                 foreach (Vessel v in FlightGlobals.Vessels)
                 {
+                    if (v.vesselType == VesselType.EVA) // Stop any EVA warping
+                    {
+                        Loadedcount = 10;
+                    }
+
                     if (v.loaded)
                     {
+                        LoadedVesselList.Add(v);
                         Loadedcount++;
                     }
-                    if (Loadedcount > 2)
+                }
+
+                if (Loadedcount > 1)
+                {
+                    foreach (Vessel loaded in LoadedVesselList)
                     {
-                        MultipleLoadedSceneVessels = true;
-                        break;
+                        if (loaded.vesselType == VesselType.EVA)
+                        {
+                            NearByEva = true;
+                            break;
+                        }
                     }
+                    MultipleLoadedSceneVessels = true;
                 }
 
                 if (MultipleLoadedSceneVessels == false)
                 {
-                    VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
-                    CatchUpOrbit(vessel);
+                    if (vessel.vesselType != VesselType.EVA && NearByEva == false)
+                    {
+                        VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
+                        CatchUpOrbit(vessel);
+                    }
                 }
             }
 
@@ -851,39 +968,69 @@ namespace WhitecatIndustries
 
             if (TimeWarp.CurrentRate == 0 || (TimeWarp.CurrentRate > 0 && TimeWarp.WarpMode != TimeWarp.Modes.HIGH))
             {
-                foreach (Part p in vessel.parts)
+                if (vessel.vesselType != VesselType.EVA)
                 {
-                    if ((p.physicalSignificance == Part.PhysicalSignificance.FULL) &&
-                        (p.Rigidbody != null))
+                    foreach (Part p in vessel.parts)
                     {
-                        p.Rigidbody.AddForce(Vector3d.back * (decayForce)); // 1.4.0 makes periapsis rise
+                        if ((p.physicalSignificance == Part.PhysicalSignificance.FULL) &&
+                            (p.Rigidbody != null))
+                        {
+                            //p.Rigidbody.AddForce(Vector3d.back * (decayForce)); // 1.5.0
+                        }
                     }
                 }
 
             }
 
-            else if (TimeWarp.CurrentRate > 1 && TimeWarp.WarpMode != TimeWarp.Modes.LOW) // 1.3.0 Timewarp Fix
+            else if (TimeWarp.CurrentRate > 0 && TimeWarp.WarpMode != TimeWarp.Modes.LOW) // 1.3.0 Timewarp Fix
             {
-                bool MultipleLoadedSceneVessels = false; // 1.4.0 Debris warp fix
-                int Loadedcount = 0;
+                    bool MultipleLoadedSceneVessels = false; // 1.4.0 Debris warp fix
+                    int Loadedcount = 0;
 
-                foreach (Vessel v in FlightGlobals.Vessels)
-                {
-                    if (v.loaded)
-                    {
-                        Loadedcount++;
-                    }
-                    if (Loadedcount > 2)
+                    bool NearByEva = false;
+                    List<Vessel> LoadedVesselList = new List<Vessel>();
+
+                    if (CheckVesselProximity(vessel))
                     {
                         MultipleLoadedSceneVessels = true;
-                        break;
                     }
-                }
+                    else
+                    {
+                        foreach (Vessel v in FlightGlobals.Vessels)
+                        {
+                            if (vessel.vesselType != VesselType.EVA) // Stop any EVA warping
+                            {
+                                Loadedcount = 10;
+                            }
 
-                if (MultipleLoadedSceneVessels == false)
-                {
-                    VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
-                    CatchUpOrbit(vessel);
+                            if (v.loaded)
+                            {
+                                LoadedVesselList.Add(v);
+                                Loadedcount++;
+                            }
+
+                            if (Loadedcount > 1)
+                            {
+                                foreach (Vessel loaded in LoadedVesselList)
+                                {
+                                    if (loaded.vesselType == VesselType.EVA || vessel.vesselType == VesselType.EVA)
+                                    {
+                                        NearByEva = true;
+                                        break;
+                                    }
+                                }
+                                MultipleLoadedSceneVessels = true;
+                            }
+                    }
+
+                    if (MultipleLoadedSceneVessels == false)
+                    {
+                        if (vessel.vesselType != VesselType.EVA && NearByEva == false)
+                        {
+                            VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
+                            CatchUpOrbit(vessel);
+                        }
+                    }
                 }
             }
         }
@@ -1026,19 +1173,19 @@ namespace WhitecatIndustries
                     double VesselArea = VesselData.FetchArea(vessel);
                     if (VesselArea == 0)
                     {
-                        VesselArea = 1.0;
+                        VesselArea = 5.0;
                     }
 
                     double DistanceTravelled = InitialOrbitalVelocity; // Meters
                     double VesselMass = VesselData.FetchMass(vessel);   // Kg
                     if (VesselMass == 0)
                     {
-                        VesselMass = 100.0; // Default is 100kg
+                        VesselMass = 1000.0; // Default is 100kg
                     }
 
                     EquivalentAltitude = EquivalentAltitude / 1000.0;
 
-                    double AtmosphericDensity = 1.020 * (Math.Pow(10, 7.0) * Math.Pow(((EquivalentAltitude)), -7.172)); // Kg/m^3 // *1
+                    double AtmosphericDensity = 1.020 * (Math.Pow(10, 7.0) * Math.Pow(((EquivalentAltitude + 70.0)), -7.172)); // Kg/m^3 // *1
                     double DeltaPeriod = ((3 * Math.PI) * (InitialSemiMajorAxis * AtmosphericDensity) * ((VesselArea * 2.2) / VesselMass)); // Unitless
                     double InitialPeriod = (2 * Math.PI * Math.Sqrt((Math.Pow(InitialSemiMajorAxis, (double)3)) / StandardGravitationalParameter));
                     double FinalPeriod = InitialPeriod - DeltaPeriod;
@@ -1109,19 +1256,19 @@ namespace WhitecatIndustries
 
             double ExothericTemperature = 900.0 + (2.5 * (F107Flux - 70)) + (1.5 * GeomagneticIndex);
             double ScaleHeight = ExothericTemperature / MolecularMass;
-            double AtmosphericDensity = (6 * (Math.Pow((10), -10)) * Math.Pow(Math.E, -(((EquivalentAltitude / 1000) - 175.0f) / ScaleHeight)));
+            double AtmosphericDensity = 1.020 * Math.Pow(10.0, 7.0) * Math.Pow(EquivalentAltitude/1000.0 + 70.0, -7.172); // 1.4.2
             double Beta = 1.0 / ScaleHeight;
 
             double VesselArea = VesselData.FetchArea(vessel);
             if (VesselArea == 0)
             {
-                VesselArea = 1.0;
+                VesselArea = 5.0;
             }
 
             double VesselMass = VesselData.FetchMass(vessel);   // Kg
             if (VesselMass == 0)
             {
-                VesselMass = 100.0;
+                VesselMass = 1000.0;
             }
 
             EquivalentAltitude = EquivalentAltitude + body.Radius;

@@ -60,27 +60,12 @@ namespace WhitecatIndustries
     public class LoadingCheck : MonoBehaviour
     {
         public string KSPOrbitDecayLite = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/OrbitDecayLite/KSPOrbitDecayLite.dll";
-        public string RealFuels = KSPUtil.ApplicationRootPath + "GameData/RealSolarSystem/Plugins/RealSolarSystem.dll";
-        public static bool Comp;
-        public static bool RealSolar;
+        public string RealSolar = KSPUtil.ApplicationRootPath + "GameData/RealSolarSystem/Plugins/RealSolarSystem.dll";
 
         void Start()
         {
-            if (System.IO.File.Exists(KSPOrbitDecayLite))
+            if (System.IO.File.Exists(RealSolar))
             {
-                Comp = false;
-                print("WhitecatIndustries - WARNING, KSPOrbitDecayLite.dll found. Orbit Decay.dll disabled");
-            }
-
-            else
-            {
-                Comp = true;
-                print("WhitecatIndustries - Orbit Decay Loaded");
-            }
-
-            if (System.IO.File.Exists(RealFuels))
-            {
-                RealSolar = true;
                 Settings.WriteRD(true);
                 Settings.Write24H(true);
                 Settings.WriteDifficulty(1.0);
@@ -94,7 +79,6 @@ namespace WhitecatIndustries
                 Settings.Write24H(false);
                 Settings.WriteRD(false);
                 Settings.WritePlanetariumTracking(true);
-                RealSolar = false;
             }
         }
 

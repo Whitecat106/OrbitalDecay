@@ -54,6 +54,17 @@ namespace WhitecatIndustries
 
             if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING || HighLogic.LoadedScene != GameScenes.LOADINGBUFFER))
             {
+                if (System.IO.File.ReadAllLines(FilePath).Length == 0)
+                {
+                    ConfigNode FileM = new ConfigNode();
+                    ConfigNode FileN = new ConfigNode("VESSEL");
+                    FileN.AddValue("name", "WhitecatsDummyVessel");
+                    FileN.AddValue("id", "000");
+                    FileN.AddValue("persistence", "WhitecatsDummySaveFileThatNoOneShouldNameTheirSave");
+                    FileM.AddNode(FileN);
+                    FileM.Save(FilePath);
+                }
+
                 File = ConfigNode.Load(FilePath);
 
                 if (File.nodes.Count > 0)
@@ -79,13 +90,12 @@ namespace WhitecatIndustries
                 {
                     lastUpdate = Time.time;
 
-                    if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING || HighLogic.LoadedScene != GameScenes.LOADINGBUFFER))
+                    if (DecayManager.CheckSceneStateMain(HighLogic.LoadedScene))               
                     {
                         Vessel vessel = new Vessel();
                         for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
                         {
                             vessel = FlightGlobals.Vessels.ElementAt(i);
-                            if ((vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown))
                             {
                                 if (CheckIfContained(vessel) == true)
                                 {
@@ -101,7 +111,7 @@ namespace WhitecatIndustries
                                 }
                                 else if (CheckIfContained(vessel) == false)
                                 {
-                                    if (vessel.situation == Vessel.Situations.ORBITING)
+                                    if (vessel.situation == Vessel.Situations.ORBITING) // 1.4.2
                                     {
                                         WriteVesselData(vessel);
                                     }
@@ -115,7 +125,7 @@ namespace WhitecatIndustries
 
         public void OnDestroy()
         {
-            if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER)) //&& HighLogic.LoadedScene != GameScenes.MAINMENU))
+            if (DecayManager.CheckSceneStateMain(HighLogic.LoadedScene))         
             {
                 if ((Planetarium.GetUniversalTime() == HighLogic.CurrentGame.UniversalTime) || HighLogic.LoadedScene == GameScenes.FLIGHT)
                 {
@@ -151,7 +161,7 @@ namespace WhitecatIndustries
 
             if (CheckIfContained(vessel) == true)
             {
-                if (vessel = FlightGlobals.ActiveVessel)
+                if (vessel == FlightGlobals.ActiveVessel)
                 {
                     if (FlightGlobals.ActiveVessel.geeForce > 0.01) // Checks if a vessel is still moving between orbits (Average GForce around 0.0001)
                     {
@@ -249,7 +259,7 @@ namespace WhitecatIndustries
             else
             {
                 newVessel.AddValue("Mass", vessel.GetTotalMass() * 1000); // Try "1"
-                newVessel.AddValue("Area", "2.0"); // Still getting bugs here
+                newVessel.AddValue("Area", CalculateVesselArea(vessel)); // Still getting bugs here
             }
             newVessel.AddValue("ReferenceBody", vessel.orbitDriver.orbit.referenceBody.GetName());
             newVessel.AddValue("SMA", vessel.GetOrbitDriver().orbit.semiMajorAxis);
@@ -770,7 +780,6 @@ namespace WhitecatIndustries
             }
         }
 
-
         public static void UpdateVesselFuel(Vessel vessel, double Fuel)
         {
             ConfigNode Data = VesselInformation;
@@ -795,9 +804,11 @@ namespace WhitecatIndustries
         public static double CalculateVesselArea(Vessel vessel)
         {
             double Area = 0;
+            /*
             if (vessel.rootPart.radiativeArea != 0)
             {
                 Area = vessel.rootPart.radiativeArea / 2;
+                print("CalcArea: " + FindVesselArea(vessel));
             }
             else
             {
@@ -810,8 +821,30 @@ namespace WhitecatIndustries
                     Area = 1.25; 
                 }
             }
+             */
+            Area = FindVesselArea(vessel);
             print("Area: " + Area);
             return Area;
+        }
+
+        public static double FindVesselArea(Vessel vessel)
+        {
+            double Area = 0.0;
+            ProtoVessel vesselImage = vessel.protoVessel;
+            List<ProtoPartSnapshot> PartSnapshots = vesselImage.protoPartSnapshots;
+            foreach (ProtoPartSnapshot part in PartSnapshots)
+            {
+                if (vessel == FlightGlobals.ActiveVessel)
+                {
+                    Area = Area + part.partRef.radiativeArea;
+                }
+                else
+                {
+                    Area = Area + (part.partInfo.partSize * 2.0 * Math.PI);
+                }
+            }
+
+            return Area/4.0; // only one side facing prograde
         }
     }
 }
