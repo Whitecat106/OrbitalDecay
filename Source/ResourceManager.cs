@@ -76,7 +76,7 @@ namespace WhitecatIndustries
             {
                 int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
                 List<PartResource> Resources = new List<PartResource>();
-                vessel.rootPart.GetConnectedResources(MonoPropId, ResourceFlowMode.ALL_VESSEL, Resources);
+                vessel.rootPart.GetConnectedResources(MonoPropId, ResourceFlowMode.STAGE_PRIORITY_FLOW, Resources);
 
                     if (Resources.Count > 0)
                     {

@@ -758,7 +758,6 @@ namespace WhitecatIndustries
         {
             double Area = 0;
             Area = FindVesselArea(vessel);
-            print("Area: " + Area);
             return Area;
         }
 

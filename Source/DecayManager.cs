@@ -227,16 +227,26 @@ namespace WhitecatIndustries
         public static bool CheckVesselProximity(Vessel vessel)
         {
             bool close = false;
-            if (vessel.loaded)
+
+            if (HighLogic.LoadedSceneIsFlight)
             {
-                foreach (Vessel v in FlightGlobals.Vessels)
+                double Distance = Vector3d.Distance(vessel.GetWorldPos3D(), FlightGlobals.ActiveVessel.GetWorldPos3D()); // Fixes Rendezvous Issues Hopefully
+                if (Distance < 100000)
                 {
-                    if (v.loaded && v!=vessel) // && (v.vesselType == VesselType.EVA || v.vesselType == VesselType.Debris))
-                    {
-                        close = true;
-                        break;
-                    }
+                    close = true;
                 }
+            }
+                if (vessel == FlightGlobals.ActiveVessel)
+                {
+                    foreach (Vessel v in FlightGlobals.Vessels)
+                    {
+                        if (v.loaded && v != vessel) // && (v.vesselType == VesselType.EVA || v.vesselType == VesselType.Debris))
+                        {
+                            close = true;
+                            break;
+                        }
+                    }
+                
             }
 
             return close;
@@ -262,19 +272,19 @@ namespace WhitecatIndustries
 
             if (Time.timeSinceLevelLoad > 0.5)
             {
-            if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
-            {
-                if ((Time.time - lastUpdate) > UPTInterval)
+                if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
                 {
-                    lastUpdate = Time.time;   
-
-                    if (HighLogic.LoadedScene == GameScenes.SPACECENTER || HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.FLIGHT)
+                    if ((Time.time - lastUpdate) > UPTInterval)
                     {
-                        for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
-                        {
-                            Vessel vessel = FlightGlobals.Vessels.ElementAt(i);
+                        lastUpdate = Time.time;
 
-                            if ((vessel.situation == Vessel.Situations.ORBITING) || (vessel.situation == Vessel.Situations.SUB_ORBITAL && vessel != FlightGlobals.ActiveVessel && vessel == vessel.packed )) // Fixes teleporting debris
+                        if (HighLogic.LoadedScene == GameScenes.SPACECENTER || HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.FLIGHT)
+                        {
+                            for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
+                            {
+                                Vessel vessel = FlightGlobals.Vessels.ElementAt(i);
+
+                                if ((vessel.situation == Vessel.Situations.ORBITING) || (vessel.situation == Vessel.Situations.SUB_ORBITAL && vessel != FlightGlobals.ActiveVessel && vessel == vessel.packed)) // Fixes teleporting debris
                                 {
                                     if (VesselData.FetchStationKeeping(vessel) == false)
                                     {
@@ -312,7 +322,7 @@ namespace WhitecatIndustries
                                     }
                                     else
                                     {
-                                       StationKeepingManager.FuelManager(vessel);
+                                        StationKeepingManager.FuelManager(vessel);
                                     }
                                 }
                             }
@@ -958,7 +968,7 @@ namespace WhitecatIndustries
                     if (vessel.vesselType != VesselType.EVA && NearByEva == false)
                     {
                         VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
-                        CatchUpOrbit(vessel);
+                        CatchUpOrbit(vessel); 
                     }
                 }
             }
