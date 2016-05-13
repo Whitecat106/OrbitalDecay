@@ -34,7 +34,7 @@ namespace WhitecatIndustries
 {
     public class ResourceManager : MonoBehaviour
     {
-        public static void RemoveResources(Vessel vessel, string resource, float quantity)
+        public static void RemoveResources(Vessel vessel, string resource, double quantity)
         {
             if (vessel = FlightGlobals.ActiveVessel)
             {
@@ -46,14 +46,15 @@ namespace WhitecatIndustries
         public static void CatchUp(Vessel vessel, string resource)
         {
             int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
-            vessel.rootPart.RequestResource(MonoPropId, (-VesselData.FetchFuel(vessel) + VesselData.FetchDryFuel(vessel)));
-            VesselData.UpdateDryFuel(vessel,VesselData.FetchFuel(vessel));
+            vessel.rootPart.RequestResource(MonoPropId, (Math.Abs(GetResources(vessel,resource) - VesselData.FetchFuel(vessel))));
         }
 
         public static double GetResources(Vessel vessel, string resource)
         {
             double quantity = 0.0;
 
+            if (vessel != FlightGlobals.ActiveVessel)
+            {
                 ProtoVessel proto = vessel.protoVessel;
 
                 foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
@@ -69,32 +70,21 @@ namespace WhitecatIndustries
                         }
                     }
                 }
+            }
 
-            return quantity;
-        }
-
-        public static double GetDryResources(Vessel vessel, string resource) // Fix this
-        {
-            double quantity = 0.0;
-
-            try
+            else
             {
-                ProtoVessel proto = vessel.protoVessel;
+                int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
+                List<PartResource> Resources = new List<PartResource>();
+                vessel.rootPart.GetConnectedResources(MonoPropId, ResourceFlowMode.ALL_VESSEL, Resources);
 
-                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
-                {
-                    if (protopart.resources.Count > 0)
-                    foreach (ProtoPartResourceSnapshot protopartresourcesnapshot in protopart.resources)
+                    if (Resources.Count > 0)
                     {
-                        if (protopartresourcesnapshot.resourceName == resource)
+                        foreach (PartResource Res in Resources)
                         {
-                            quantity = quantity + double.Parse(protopartresourcesnapshot.resourceValues.GetValue("maxAmount"));
+                            quantity = quantity + Res.amount;
                         }
                     }
-                }
-            }
-            catch (NullReferenceException)
-            {
             }
 
             return quantity;
@@ -114,32 +104,5 @@ namespace WhitecatIndustries
             }
             return Efficiency;
         }
-
-        /*
-        public static List<PartResource> GetVesselPartResources(Vessel vessel) //1.5.0
-        {
-            PartResourceList List;
-            List<PartResource> UsableResources = new List<PartResource>();
-
-            List = vessel.rootPart.Resources;
-
-            foreach (PartResource Res in List)
-            {
-                double Id = Res.GetInstanceID();
-                foreach (PartResourceDefinition Resource in PartResourceLibrary.Instance.resourceDefinitions)
-                {
-                    if (Resource.id == Id)
-                    {
-                        if (Resource.resourceFlowMode != ResourceFlowMode.ALL_VESSEL && Resource.resourceFlowMode != ResourceFlowMode.NO_FLOW && Resource.resourceTransferMode != ResourceTransferMode.NONE &&
-                            Resource.name != "EVA Propellant" && Resource.name != "Ore" && Resource.name != "ElectricCharge" && Resource.name != "IntakeAir")
-                        {
-                            UsableResources.Add(Res);
-                        }
-                    }
-                }
-            }       
-            return UsableResources;
-        }
-        */
     }
 }

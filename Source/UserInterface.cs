@@ -178,8 +178,8 @@ namespace WhitecatIndustries
             {
                 if (vessel.situation == Vessel.Situations.ORBITING && vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown && vessel.vesselType != VesselType.Debris)
                 {
-                    string StationKeeping = VesselData.FetchStationKeeping(vessel).ToString();
-                    string StationKeepingFuelRemaining = VesselData.FetchFuel(vessel).ToString("F3");
+                    var StationKeeping = VesselData.FetchStationKeeping(vessel).ToString();
+                    var StationKeepingFuelRemaining = VesselData.FetchFuel(vessel).ToString("F3");
                     var ButtonText = "";
                     var HoursInDay = 6.0;
 
@@ -488,7 +488,7 @@ namespace WhitecatIndustries
                         {
                             if (StationKeepingManager.EngineCheck(vessel) == true)
                             {
-                                if ((double.Parse(StationKeepingFuelRemaining) > 0.01 && (VesselData.FetchDryFuel(vessel)) > 0.01)) // Good enough...
+                                if ((double.Parse(StationKeepingFuelRemaining) > 0.01 )) // Good enough...
                                 {
                                     VesselData.UpdateStationKeeping(vessel, true);
                                     ScreenMessages.PostScreenMessage("Vessel: " + vessel.vesselName + (": Station Keeping Enabled"));
@@ -630,8 +630,7 @@ namespace WhitecatIndustries
                             Vessel vessel = FlightGlobals.Vessels.ElementAt(j);
                             if (vessel.situation == Vessel.Situations.ORBITING && vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown)
                             {
-                                VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Resource));
-                                VesselData.UpdateDryFuel(vessel, ResourceManager.GetDryResources(vessel, Resource));
+                                //VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Resource));
                             }
                         }
                         ScreenMessages.PostScreenMessage("Station Keeping Resource set to: " + Resource);

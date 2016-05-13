@@ -32,37 +32,10 @@ using KSP.IO;
 
 namespace WhitecatIndustries
 {
-    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+
     public class StationKeepingManager : MonoBehaviour
     {
-        private float UPTInterval = 1.0f;
-        private float lastUpdate = 1.0f;
-
-        public void FixedUpdate()
-        {
-            if (HighLogic.LoadedSceneIsGame)
-            {
-                if ((Time.time - lastUpdate) > UPTInterval)
-                {
-                    lastUpdate = Time.time;
-                    if (HighLogic.LoadedScene == GameScenes.SPACECENTER || HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.FLIGHT)
-                    {
-                        for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
-                        {
-                            Vessel vessel = FlightGlobals.Vessels.ElementAt(i);
-                            if (vessel.situation == Vessel.Situations.ORBITING && vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown)
-                            {
-                                if (VesselData.FetchStationKeeping(vessel) == true)
-                                {
-                                    FuelManager(vessel);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
+      
         public static bool EngineCheck(Vessel vessel) // 1.3.0
         {
             bool HasEngine = false;
@@ -111,17 +84,19 @@ namespace WhitecatIndustries
             string ResourceName = "";
             
             ResourceName = Settings.ReadStationKeepingResource();
+            double CurrentFuel = 0;
+            CurrentFuel = VesselData.FetchFuel(vessel);
 
-            double CurrentFuel = VesselData.FetchFuel(vessel);
-            float ResourceEfficiency = ResourceManager.GetEfficiency(ResourceName);
-            float LostFuel = 0.0f;
+            double ResourceEfficiency = ResourceManager.GetEfficiency(ResourceName);
+            double LostFuel = 0.0;
+
             if (Settings.ReadRD() == true)
             {
-                LostFuel = (float)DecayManager.DecayRateRealistic(vessel) * (float)Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
+                LostFuel = DecayManager.DecayRateRealistic(vessel) * Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
             }
             else
             {
-                LostFuel = (float)DecayManager.DecayRateStock(vessel) * (float)Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
+                LostFuel = DecayManager.DecayRateStock(vessel) * Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
             }
 
             double FuelNew = CurrentFuel - LostFuel;

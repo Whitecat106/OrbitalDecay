@@ -84,13 +84,13 @@ namespace WhitecatIndustries
 
         public void FixedUpdate()
         {
-            if (Time.timeSinceLevelLoad > 0.5)
+            if (Time.timeSinceLevelLoad > 0.3)
             {
                 if ((Time.time - lastUpdate) > UPTInterval) // 1.4.0 Lag Busting
                 {
                     lastUpdate = Time.time;
 
-                    if (DecayManager.CheckSceneStateMain(HighLogic.LoadedScene))               
+                    if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
                     {
                         Vessel vessel = new Vessel();
                         for (int i = 0; i < FlightGlobals.Vessels.Count; i++)
@@ -99,19 +99,19 @@ namespace WhitecatIndustries
                             {
                                 if (CheckIfContained(vessel) == true)
                                 {
-                                    if (vessel.situation != Vessel.Situations.ORBITING)
+                                    if (vessel.situation != Vessel.Situations.SUB_ORBITAL && vessel.situation != Vessel.Situations.ORBITING)
                                     {
                                         ClearVesselData(vessel);
                                     }
 
-                                    if (vessel.situation == Vessel.Situations.ORBITING)
+                                    if (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.SUB_ORBITAL)
                                     {
                                         WriteVesselData(vessel);
                                     }
                                 }
                                 else if (CheckIfContained(vessel) == false)
                                 {
-                                    if (vessel.situation == Vessel.Situations.ORBITING) // 1.4.2
+                                    if (vessel.situation == Vessel.Situations.ORBITING || vessel.situation == Vessel.Situations.SUB_ORBITAL) // 1.4.2
                                     {
                                         WriteVesselData(vessel);
                                     }
@@ -210,11 +210,9 @@ namespace WhitecatIndustries
             {
                 string ResourceName = "";
                 ResourceName = Settings.ReadStationKeepingResource();
-
                 VesselNode.SetValue("Mass", (vessel.GetTotalMass() * 1000).ToString());
                 VesselNode.SetValue("Area", (CalculateVesselArea(vessel)).ToString());
                 VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel, ResourceName)).ToString());
-                VesselNode.SetValue("DryFuel", (ResourceManager.GetDryResources(vessel,ResourceName)).ToString()); 
             }
         }
 
@@ -273,7 +271,6 @@ namespace WhitecatIndustries
 
             newVessel.AddValue("StationKeeping", false.ToString());
             newVessel.AddValue("Fuel", ResourceManager.GetResources(vessel, ResourceName));
-            newVessel.AddValue("DryFuel", ResourceManager.GetDryResources(vessel, ResourceName)); // 1.4.0 Resource Fix
 
             return newVessel; 
         }
@@ -708,55 +705,11 @@ namespace WhitecatIndustries
 
                 if (Vesselfound == true)
                 {
-                    Fuel = float.Parse(Vessel.GetValue("Fuel").ToString());
+                    Fuel = double.Parse(Vessel.GetValue("Fuel").ToString());
                     break;
                 }
             }
             return Fuel;
-        }
-
-        public static float FetchDryFuel(Vessel vessel)
-        {
-            ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-            float Fuel = 0.0f;
-
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    Fuel = float.Parse(Vessel.GetValue("DryFuel").ToString());
-                    break;
-                }
-            }
-            return Fuel;
-        }
-
-        public static void UpdateDryFuel(Vessel vessel, double fuel)
-        {
-            ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    Vessel.SetValue("DryFuel", fuel.ToString());
-                    break;
-                }
-            }
         }
 
         public static void UpdateBody(Vessel vessel, CelestialBody body)
@@ -804,24 +757,6 @@ namespace WhitecatIndustries
         public static double CalculateVesselArea(Vessel vessel)
         {
             double Area = 0;
-            /*
-            if (vessel.rootPart.radiativeArea != 0)
-            {
-                Area = vessel.rootPart.radiativeArea / 2;
-                print("CalcArea: " + FindVesselArea(vessel));
-            }
-            else
-            {
-                if (Settings.ReadRD()) // Temporary Assumptions
-                {
-                    Area = 3.5;
-                }
-                else
-                {
-                    Area = 1.25; 
-                }
-            }
-             */
             Area = FindVesselArea(vessel);
             print("Area: " + Area);
             return Area;
