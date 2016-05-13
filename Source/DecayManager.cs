@@ -107,7 +107,7 @@ namespace WhitecatIndustries
 
         public void UpdateActiveVesselInformationPart(Part part) // Until eventdata OnPartResourceFlowState works! // 1.3.0
         {
-            if (part.vessel == FlightGlobals.ActiveVessel && TimeWarp.CurrentRate == 1) // 1.4.2 
+            if (part.vessel == FlightGlobals.ActiveVessel && TimeWarp.CurrentRate == 0) // 1.4.2 
             {
                 if (HighLogic.LoadedScene == GameScenes.FLIGHT && GUIToggled == false) // 1.3.1
                 {
@@ -235,7 +235,7 @@ namespace WhitecatIndustries
                 {
                     close = true;
                 }
-            }
+
                 if (vessel == FlightGlobals.ActiveVessel)
                 {
                     foreach (Vessel v in FlightGlobals.Vessels)
@@ -246,7 +246,7 @@ namespace WhitecatIndustries
                             break;
                         }
                     }
-                
+                }      
             }
 
             return close;
@@ -292,7 +292,7 @@ namespace WhitecatIndustries
                                         {
                                             RealisticDecaySimulator(vessel);
 
-                                            if (vessel == vessel.loaded && CheckVesselProximity(vessel) == false)
+                                            if (vessel == vessel.loaded)
                                             {
                                                 if (Settings.ReadRD() == true)
                                                 {
@@ -396,16 +396,6 @@ namespace WhitecatIndustries
             }
              
         } // Redundant in 1.1.0
-
-        /*public void ActiveVesselFuelManage(Vessel vessel)
-        {
-            bool StationKeep = VesselData.FetchStationKeeping(vessel);
-            if (StationKeep == true && vessel.vesselType != VesselType.EVA)
-            {
-                StationKeepingManager.FuelManager(vessel);
-            }
-        }
-         */
 
         public static void CatchUpOrbit(Vessel vessel)
         {
@@ -910,10 +900,10 @@ namespace WhitecatIndustries
             CalculatedFinalVelocity = newOrbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
 
             double DeltaVelocity = InitialVelocity - CalculatedFinalVelocity;
-            double decayForce = DeltaVelocity * (vessel.GetTotalMass());
+            double decayForce = DeltaVelocity * (vessel.GetTotalMass() * 1000);
             GameObject thisVessel = new GameObject();
             
-            if (TimeWarp.CurrentRate == 1 || (TimeWarp.CurrentRate > 1  && TimeWarp.WarpMode == TimeWarp.Modes.LOW))
+            if (TimeWarp.CurrentRate == 0 || (TimeWarp.CurrentRate > 0  && TimeWarp.WarpMode == TimeWarp.Modes.LOW))
             {
                 if (vessel.vesselType != VesselType.EVA)
                 {
@@ -928,51 +918,20 @@ namespace WhitecatIndustries
                 }
             }
 
-            else if (TimeWarp.CurrentRate > 1 && TimeWarp.WarpMode != TimeWarp.Modes.LOW) // 1.3.0 Timewarp Fix
+            else if (TimeWarp.CurrentRate > 0 && TimeWarp.WarpMode == TimeWarp.Modes.HIGH) // 1.3.0 Timewarp Fix
             {
                 bool MultipleLoadedSceneVessels = false; // 1.4.0 Debris warp fix
-                int Loadedcount = 0;
-
-                bool NearByEva = false;
-                List<Vessel> LoadedVesselList = new List<Vessel>();
-
-                foreach (Vessel v in FlightGlobals.Vessels)
-                {
-                    if ((v.loaded && vessel.vesselType == VesselType.EVA)) // Stop any EVA warping
-                    {
-                        Loadedcount = 10;
-                    }
-
-                    if (v.loaded)
-                    {
-                        LoadedVesselList.Add(v);
-                        Loadedcount++;
-                    }
-                }
-
-                if (Loadedcount > 1)
-                {
-                    foreach (Vessel loaded in LoadedVesselList)
-                    {
-                        if (loaded.vesselType == VesselType.EVA)
-                        {
-                            NearByEva = true;
-                            break;
-                        }
-                    }
-                    MultipleLoadedSceneVessels = true;
-                }
+                MultipleLoadedSceneVessels = CheckVesselProximity(vessel);
 
                 if (MultipleLoadedSceneVessels == false)
                 {
-                    if (vessel.vesselType != VesselType.EVA && NearByEva == false)
+                    if (vessel.vesselType != VesselType.EVA)
                     {
                         VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
                         CatchUpOrbit(vessel); 
                     }
                 }
             }
-
         }
 
         public static void ActiveDecayStock(Vessel vessel)
@@ -986,10 +945,10 @@ namespace WhitecatIndustries
             CalculatedFinalVelocity = newOrbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
 
             double DeltaVelocity = InitialVelocity - CalculatedFinalVelocity;
-            double decayForce = DeltaVelocity * (vessel.GetTotalMass());
+            double decayForce = DeltaVelocity * (vessel.GetTotalMass() * 1000);
             GameObject thisVessel = new GameObject();
 
-            if (TimeWarp.CurrentRate == 1 || (TimeWarp.CurrentRate > 1 && TimeWarp.WarpMode != TimeWarp.Modes.HIGH))
+            if (TimeWarp.CurrentRate == 0 || (TimeWarp.CurrentRate > 0 && TimeWarp.WarpMode == TimeWarp.Modes.LOW))
             {
                 if (vessel.vesselType != VesselType.EVA)
                 {
@@ -1005,57 +964,20 @@ namespace WhitecatIndustries
 
             }
 
-            else if (TimeWarp.CurrentRate > 1 && TimeWarp.WarpMode != TimeWarp.Modes.LOW) // 1.3.0 Timewarp Fix
+            else if (TimeWarp.CurrentRate > 0 && TimeWarp.WarpMode == TimeWarp.Modes.HIGH) // 1.3.0 Timewarp Fix
             {
                     bool MultipleLoadedSceneVessels = false; // 1.4.0 Debris warp fix
-                    int Loadedcount = 0;
-
-                    bool NearByEva = false;
-                    List<Vessel> LoadedVesselList = new List<Vessel>();
-
-                    if (CheckVesselProximity(vessel))
-                    {
-                        MultipleLoadedSceneVessels = true;
-                    }
-                    else
-                    {
-                        foreach (Vessel v in FlightGlobals.Vessels)
-                        {
-                            if (v.loaded && vessel.vesselType == VesselType.EVA) // Stop any EVA warping
-                            {
-                                Loadedcount = 10;
-                            }
-
-                            if (v.loaded)
-                            {
-                                LoadedVesselList.Add(v);
-                                Loadedcount++;
-                            }
-
-                            if (Loadedcount > 1)
-                            {
-                                foreach (Vessel loaded in LoadedVesselList)
-                                {
-                                    if (loaded.vesselType == VesselType.EVA || vessel.vesselType == VesselType.EVA)
-                                    {
-                                        NearByEva = true;
-                                        break;
-                                    }
-                                }
-                                MultipleLoadedSceneVessels = true;
-                            }
-                    }
+                    MultipleLoadedSceneVessels = CheckVesselProximity(vessel);
 
                     if (MultipleLoadedSceneVessels == false)
                     {
-                        if (vessel.vesselType != VesselType.EVA && NearByEva == false)
+                        if (vessel.vesselType != VesselType.EVA)
                         {
                             VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
                             CatchUpOrbit(vessel);
                         }
                     }
                 }
-            }
         }
 
         #endregion
