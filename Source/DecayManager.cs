@@ -143,6 +143,11 @@ namespace WhitecatIndustries
             VesselData.ClearVesselData(vessel);
         }
 
+        public void UpdateVesselDataResources(Vessel vessel)
+        {
+            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
+        }
+
         #endregion
 
         #region Check Subroutines 
@@ -323,6 +328,14 @@ namespace WhitecatIndustries
                                     else
                                     {
                                         StationKeepingManager.FuelManager(vessel);
+                                    }
+
+                                    if (HighLogic.LoadedSceneIsFlight) // UI Resource Updating 1.4.2
+                                    {
+                                        if (vessel == FlightGlobals.ActiveVessel)
+                                        {
+                                            UpdateVesselDataResources(vessel);
+                                        }
                                     }
                                 }
                             }
