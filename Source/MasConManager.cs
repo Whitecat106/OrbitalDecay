@@ -113,11 +113,12 @@ namespace WhitecatIndustries
             double BodyGASL = vessel.orbitDriver.orbit.referenceBody.GeeASL; // Fg [Gee ASL]
             double BodyRadius = vessel.orbitDriver.orbit.referenceBody.Radius; // R [Meters] 
             double VesselAltitude = vessel.orbitDriver.orbit.semiMajorAxis - BodyRadius; // r [Meters]
-            double MasConMass = (((BodyRadius * BodyRadius)) * BodyGASL * 9.81) / (GravitationalConstant * BodyMass); // m [Kilograms] (CentreGal * GalToGFactor)
+            double MasConMass = (((BodyRadius * BodyRadius)) * ((GalAtVesselDistance * GalToGFactor) + (BodyGASL)) * 9.81) / (GravitationalConstant * BodyMass); // m [Kilograms] (CentreGal * GalToGFactor)
+
 
             MasConMass = Math.Abs((1.0 - MasConMass) * BodyMass); // Work on this here to made Gal changes effect orbits
 
-            //print("MasConMass: " + MasConMass);
+            print("MasConMass: " + MasConMass);
 
             double SubvectorR = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (2.0 * VesselAltitude))) *
                 (1.0 - (3.0f / 2.0f) * (Math.Pow(SubvectorA, 2.0) + Math.Pow(SubvectorB, 2.0)) - 3.0 * SubvectorA * SubvectorB * Math.Sin(2.0 * ArgumentOfLatitude) - (3.0f / 2.0f) *
