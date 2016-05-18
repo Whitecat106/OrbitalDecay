@@ -77,6 +77,9 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Add(UpdateActiveVesselInformationPart); // Resource level change 1.3.0
                     GameEvents.onPartActionUIDismiss.Add(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Add(UpdateActiveVesselInformationPart);
+
+                    GameEvents.onGameStateSave.Add(QuicksaveorloadUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStatePostLoad.Add(QuicksaveorloadUpdate); // Quickload Checks 1.5.0 
                 }
 
                 // -- GameEvents //
@@ -137,6 +140,16 @@ namespace WhitecatIndustries
                 VesselData.WriteVesselData(vessel);
             }
         }
+
+        public void QuicksaveorloadUpdate(ConfigNode node)
+        {
+            VesselData.OnQuickSave();
+
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
+            }
+        } // 1.5.0 Quicksave or Quickload functionality
 
         public void ClearVesselOnDestroy(Vessel vessel)
         {
@@ -295,9 +308,7 @@ namespace WhitecatIndustries
                                     {
                                         if (VesselData.FetchSMA(vessel) > 0)
                                         {
-                                            RealisticDecaySimulator(vessel);
-
-                                            if (vessel == vessel.loaded)
+                                            if (!vessel.packed)
                                             {
                                                 if (Settings.ReadRD() == true)
                                                 {
@@ -307,6 +318,10 @@ namespace WhitecatIndustries
                                                 {
                                                     ActiveDecayStock(vessel);
                                                 }
+                                            }
+                                            else
+                                            {
+                                                RealisticDecaySimulator(vessel);
                                             }
                                         }
 
@@ -376,6 +391,9 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Remove(UpdateActiveVesselInformationPart); // 1.3.0
                     GameEvents.onPartActionUIDismiss.Remove(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Remove(UpdateActiveVesselInformationPart);
+
+                    GameEvents.onGameStateSave.Remove(QuicksaveorloadUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStatePostLoad.Remove(QuicksaveorloadUpdate); // Quickload Checks 1.5.0 
                 }
 
                 Vessel vessel = new Vessel();  // Set Vessel Orbits
@@ -564,7 +582,8 @@ namespace WhitecatIndustries
             Orbit orbit = vessel.orbitDriver.orbit;
             CelestialBody body = orbit.referenceBody;
 
-            // RealisticGravitationalPertubationDecay(Vessel vessel) // 1.5.0
+            RealisticGravitationalPertubationDecay(vessel); // 1.5.0
+            // RealisticYarkovskyEffectDecay(vessel); // 1.5.0
 
             if (body.atmosphere)  
             {
@@ -757,17 +776,53 @@ namespace WhitecatIndustries
             VesselData.UpdateVesselSMA(vessel, (InitialSemiMajorAxis + (ChangeInSemiMajorAxis * TimeWarp.CurrentRate * Settings.ReadDecayDifficulty())));
         }
 
-        public static void RealisticGravitationalPertubationDecay(Vessel vessel) // 1.5.0
+        public static void RealisticGravitationalPertubationDecay(Vessel vessel) // 1.5.0 
         {
             Orbit orbit = vessel.orbitDriver.orbit;
             CelestialBody body = orbit.referenceBody;
 
+            // Add interface to MasConManager Here
+            if (vessel.orbitDriver.orbit.referenceBody.GetName() != "Sun")
+            {
+                double GravitationalConstant = 6.67408 * Math.Pow(10.0, -11.0); // G [Newton Meter Squared per Square Kilogram]
+                double ForceAtSurface = (GravitationalConstant * vessel.GetTotalMass() * vessel.orbitDriver.orbit.referenceBody.Mass);
+                double ForceAtDistance = (GravitationalConstant * vessel.GetTotalMass() * vessel.orbitDriver.orbit.referenceBody.Mass) / (Math.Pow(vessel.orbitDriver.orbit.altitude, 2.0));
+                if (ForceAtDistance > (0.0000000000001 * ForceAtSurface)) // Stops distant pertubations
+                {
+                    if (MasConData.CheckMasConProximity(vessel))
+                    {
+                        print("Vessel: " + vessel.name);
+                        print("Change In Semi Major Axis from Mascon: " + MasConManager.GetCalculatedSMAChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch) * TimeWarp.CurrentRate);
+                        // Around 1m per second variation
+                        print("Change In Inclination from Mascon: " + MasConManager.GetCalculatedINCChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch));
+                        // Around 5 * 10 ^ -12 degrees 
+                        print("Change In Eccentricity from Mascon: " + MasConManager.GetCalculatedECCChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch));
+                        // Around 9 * 10 ^ -10 units 
+                       // print("Change In LPE from Mascon: " + MasConManager.GetCalculatedLPEChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch));
+
+                        print("Change In LAN from Mascon: " + MasConManager.GetCalculatedLANChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch));
+
+                        VesselData.UpdateVesselSMA(vessel, VesselData.FetchSMA(vessel) + MasConManager.GetCalculatedSMAChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch) * TimeWarp.CurrentRate);
+                        SetOrbitSMA(vessel);
+
+                        VesselData.UpdateVesselINC(vessel, VesselData.FetchINC(vessel) + MasConManager.GetCalculatedINCChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch));
+                        SetOrbitINC(vessel);
+
+                        VesselData.UpdateVesselECC(vessel, VesselData.FetchECC(vessel) + MasConManager.GetCalculatedINCChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch));
+                        SetOrbitEccentricity(vessel);
+
+                        VesselData.UpdateVesselLAN(vessel, VesselData.FetchLAN(vessel) + MasConManager.GetCalculatedLANChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch));
+                        SetOrbitLAN(vessel);
 
 
+                        //print("Change In MNA from Mascon: " + MasConManager.GetCalculatedMNAChange(vessel, orbit.LAN, orbit.meanAnomalyAtEpoch, orbit.argumentOfPeriapsis, orbit.eccentricity, orbit.inclination, orbit.semiMajorAxis, orbit.epoch));
+                    }
+                }
+            }
+        }
 
-
-
-
+        public static void RealisticYarkovskyEffectDecay(Vessel vessel) // 1.5.0 
+        {
 
         }
 
@@ -915,7 +970,7 @@ namespace WhitecatIndustries
             double DeltaVelocity = InitialVelocity - CalculatedFinalVelocity;
             double decayForce = DeltaVelocity * (vessel.GetTotalMass() * 1000);
             GameObject thisVessel = new GameObject();
-            
+
             if (TimeWarp.CurrentRate == 0 || (TimeWarp.CurrentRate > 0  && TimeWarp.WarpMode == TimeWarp.Modes.LOW))
             {
                 if (vessel.vesselType != VesselType.EVA)
@@ -925,9 +980,11 @@ namespace WhitecatIndustries
                         if ((p.physicalSignificance == Part.PhysicalSignificance.FULL) &&
                             (p.Rigidbody != null))
                         {
-                            //p.Rigidbody.AddForce(Vector3d.back * (decayForce)); // 1.5.0
+                           // p.Rigidbody.AddForce(Vector3d.back * (decayForce)); // 1.5.0
                         }
                     }
+
+                    VesselData.UpdateVesselSMA(vessel, newOrbit.semiMajorAxis);
                 }
             }
 
@@ -956,9 +1013,8 @@ namespace WhitecatIndustries
             Orbit newOrbit = vessel.orbitDriver.orbit;
             newOrbit.semiMajorAxis = (VesselData.FetchSMA(vessel) - DecayValue);
             CalculatedFinalVelocity = newOrbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
-
             double DeltaVelocity = InitialVelocity - CalculatedFinalVelocity;
-            double decayForce = DeltaVelocity * (vessel.GetTotalMass() * 1000);
+            double decayForce = DeltaVelocity * (vessel.GetTotalMass() /1000.0);
             GameObject thisVessel = new GameObject();
 
             if (TimeWarp.CurrentRate == 0 || (TimeWarp.CurrentRate > 0 && TimeWarp.WarpMode == TimeWarp.Modes.LOW))
@@ -970,9 +1026,10 @@ namespace WhitecatIndustries
                         if ((p.physicalSignificance == Part.PhysicalSignificance.FULL) &&
                             (p.Rigidbody != null))
                         {
-                            //p.Rigidbody.AddForce(Vector3d.back * (decayForce)); // 1.5.0
+                           // p.Rigidbody.AddForce((Vector3d.back * (decayForce))); // 1.5.0 Too Fast Still
                         }
                     }
+                    VesselData.UpdateVesselSMA(vessel, newOrbit.semiMajorAxis);
                 }
 
             }

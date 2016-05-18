@@ -46,7 +46,10 @@ namespace WhitecatIndustries
         public static void CatchUp(Vessel vessel, string resource)
         {
             int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
-            vessel.rootPart.RequestResource(MonoPropId, (Math.Abs(GetResources(vessel,resource) - VesselData.FetchFuel(vessel))));
+            if (VesselData.FetchFuel(vessel) > 0) // 1.5.0 Resource Instant drain fix
+            {
+                vessel.rootPart.RequestResource(MonoPropId, (Math.Abs(GetResources(vessel, resource) - VesselData.FetchFuel(vessel))));
+            }
         }
 
         public static double GetResources(Vessel vessel, string resource)

@@ -137,6 +137,20 @@ namespace WhitecatIndustries
             }
         }
 
+        public static void OnQuickSave()
+        {
+            if (DecayManager.CheckSceneStateMain(HighLogic.LoadedScene))
+            {
+                if ((Planetarium.GetUniversalTime() == HighLogic.CurrentGame.UniversalTime) || HighLogic.LoadedScene == GameScenes.FLIGHT)
+                {
+                    print("WhitecatIndustries - Orbital Decay - Vessel Information saved.");
+                    File.ClearNodes();
+                    VesselInformation.Save(FilePath);
+                    VesselInformation.ClearNodes();
+                }
+            }
+        }
+
         public static bool CheckIfContained(Vessel vessel)
         {
             bool Contained = false;
