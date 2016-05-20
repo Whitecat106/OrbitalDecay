@@ -50,7 +50,7 @@ namespace WhitecatIndustries
                         List<ProtoPartModuleSnapshot> PPMSL = PPS.modules;
                         foreach (ProtoPartModuleSnapshot PPMS in PPMSL)
                         {
-                            if (PPMS.moduleName == "ModuleEngines" || PPMS.moduleName == "ModuleRCS")
+                            if (PPMS.moduleName.Contains("ModuleEngines") || PPMS.moduleName.Contains("ModuleRCS")) // 1.5.0 Part Module Fixes
                             {
                                 HasEngine = true;
                                 break;
@@ -90,14 +90,7 @@ namespace WhitecatIndustries
             double ResourceEfficiency = ResourceManager.GetEfficiency(ResourceName);
             double LostFuel = 0.0;
 
-            if (Settings.ReadRD() == true)
-            {
-                LostFuel = DecayManager.DecayRateRealistic(vessel) * Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
-            }
-            else
-            {
-                LostFuel = DecayManager.DecayRateStock(vessel) * Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
-            }
+            LostFuel = Math.Abs((DecayManager.DecayRateAtmosphericDrag(vessel) + DecayManager.DecayRateRadiationPressure(vessel) + DecayManager.DecayRateYarkovskyEffect(vessel))) * Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
 
             double FuelNew = CurrentFuel - LostFuel;
 

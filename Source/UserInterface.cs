@@ -153,7 +153,6 @@ namespace WhitecatIndustries
                 windowPosition.y = Mathf.Clamp(windowPosition.y, 0f, Screen.height - windowPosition.height);
             }
 
-
         public void InformationTab()
         {
             GUILayout.BeginHorizontal();
@@ -173,7 +172,7 @@ namespace WhitecatIndustries
             bool Realistic = Settings.ReadRD();
             var ClockType = Settings.Read24Hr();
             var Resource = Settings.ReadStationKeepingResource();
-        
+
             foreach (Vessel vessel in FlightGlobals.Vessels)
             {
                 if (vessel.situation == Vessel.Situations.ORBITING && vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown && vessel.vesselType != VesselType.Debris)
@@ -222,200 +221,49 @@ namespace WhitecatIndustries
 
                     if (StationKeeping == "True")
                     {
-                        GUILayout.Label("Current Decay Rate: Vessel is Station Keeping");
-                        GUILayout.Space(2);
-                        GUILayout.Label("Approximate Time Until Decay: Vessel is Station Keeping");
+                        GUILayout.Label("Current Total Decay Rate: Vessel is Station Keeping");
                         GUILayout.Space(2);
                     }
                     else
                     {
-                        double DecayRate = 0.0;
-                        double DecayNumber = 0.0;
-                        if (Realistic == true)
-                        {
-                            DecayNumber = (((DecayManager.DecayRateRealistic(vessel) * 60.0 * 60.0 * HoursInDay) / TimeWarp.CurrentRate));
-                        }
-                        else
-                        {
-                            DecayNumber = (((DecayManager.DecayRateStock(vessel) * 60.0 * 60.0 * HoursInDay) / TimeWarp.CurrentRate));
-                        }
+                        double TotalDecayRatePerSecond = Math.Abs(DecayManager.DecayRateAtmosphericDrag(vessel)) + Math.Abs(DecayManager.DecayRateRadiationPressure(vessel)) + Math.Abs(DecayManager.DecayRateYarkovskyEffect(vessel)); //+ Math.Abs(DecayManager.DecayRateGravitationalPertubation(vessel));
+                        double ADDR = DecayManager.DecayRateAtmosphericDrag(vessel);
+                        double GPDR = DecayManager.DecayRateGravitationalPertubation(vessel);
+                        double PRDR = DecayManager.DecayRateRadiationPressure(vessel);
+                        double YEDR = DecayManager.DecayRateYarkovskyEffect(vessel);
 
-                        DecayRate = DecayNumber;
+                        GUILayout.Label("Current Total Decay Rate: " + FormatDecayRateToString(TotalDecayRatePerSecond));
+                        //GUILayout.Space(2);
 
-                        if (DecayRate > 500000)
-                        {
-                            GUILayout.Label("Current Decay Rate: Vessel Periapsis too close to body atmosphere");
-                        }
+                        //if (GUILayout.Button(ButtonText2))
+                        //{
+                            //GUILayout.Space(2);
+                            //GUILayout.Label("Current Atmospheric Drag Decay Rate: " + FormatDecayRateToString(ADDR));
+                            //GUILayout.Space(2);
+                            //GUILayout.Label("Current Radiation Pressure Decay Rate: " + FormatDecayRateToString(PRDR));
+                            //GUILayout.Space(2);
+                            //GUILayout.Label("Current Gravitational Effect Decay Rate: " + FormatDecayRateToString(GPDR));
+                            //GUILayout.Space(2);
+                            //GUILayout.Label("Current Yarkovsky Effect Decay Rate: " + FormatDecayRateToString(YEDR)); // 1.6.0
+                        //}
 
-                        else if (DecayRate <= 0.000000001 && Math.Sign(DecayRate) == 1 || (DecayRate <= 0.000000001 && Math.Sign(DecayRate) == 0))
-                        {
-                            GUILayout.Label("Current Decay Rate: Vessel is in a stable orbit");
-                        }
-
-                        else if (DecayRate <= 0.000000001 && Math.Sign(DecayRate) == -1 && vessel.orbitDriver.orbit.referenceBody.atmosphere)
-                        {
-                            GUILayout.Label("Current Decay Rate: Vessel Periapsis too close to body atmosphere");
-                        }
-
-                        else if (DecayRate <= 0.000000001 && Math.Sign(DecayRate) == -1 && !vessel.orbitDriver.orbit.referenceBody.atmosphere)
-                        {
-                            if (Math.Abs(DecayRate * DaysInYear * 1000) > 10 && Math.Abs(DecayRate * DaysInYear * 1000) <= 1000)
-                            {
-                                GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 100)).ToString("F1") + "cm per year");
-                            }
-
-                            if (Math.Abs(DecayRate * DaysInYear * 1000) > 1000 && Math.Abs(DecayRate * DaysInYear * 1000) <= 1000000)
-                            {
-                                GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 10)).ToString("F1") + "m per year");
-                            }
-
-                            if (Math.Abs(DecayRate * DaysInYear * 1000) > 1000000)
-                            {
-                                GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 1)).ToString("F1") + "Km per year");
-                            }
-
-                            if (Math.Abs(DecayRate * DaysInYear * 1000 ) < 10)
-                            {
-                                GUILayout.Label("Current Decay Rate: " + (Math.Abs(DecayRate * DaysInYear * 1000)).ToString("F1") + "mm per year");
-                            }
-                        }
-
-                        else if (DecayRate > 0.000000001 && DecayRate < 1000)
-                        {
-                            GUILayout.Label("Current Decay Rate: " + DecayRate.ToString("F1") + "m per day");
-                        }
-
-                        else
-                        {
-                            GUILayout.Label("Current Decay Rate: " + (DecayRate/1000).ToString("F1") + "Km per day");
-                        }
-                       
                         GUILayout.Space(2);
 
-                        if (vessel.orbitDriver.orbit.referenceBody.atmosphere)
+                        double TimeUntilDecayInUnits = 0.0;
+                        string TimeUntilDecayInDays = "";
+
+                        if (ADDR != 0)
                         {
-                            if (Realistic == true)
-                            {
-                                double RealisticDecayTime = DecayManager.RealisticDecayTimePrediction(vessel);
-
-                                if (RealisticDecayTime < 0)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: Decay Imminent");
-                                }
-                                else
-                                {
-                                    if ((RealisticDecayTime / DaysInYear) > 1000)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
-                                    }
-
-                                    else if (RealisticDecayTime > DaysInYear)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: " + (RealisticDecayTime / DaysInYear).ToString("F1") + " years.");
-                                    }
-                                    else
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: " + RealisticDecayTime.ToString("F1") + " days.");
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                double StockDecayTime = DecayManager.StockDecayTimePrediction(vessel);
-
-                                if (StockDecayTime < 0)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: Decay Imminent");
-                                }
-
-                                else
-                                {
-                                    if ((StockDecayTime / DaysInYear) > 1000)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
-                                    }
-
-                                    else if (StockDecayTime > DaysInYear)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: " + (StockDecayTime / DaysInYear).ToString("F1") + " years.");
-                                    }
-                                    else
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: " + StockDecayTime.ToString("F1") + " days.");
-                                    }
-                                }
-                            }
+                            TimeUntilDecayInUnits = DecayManager.DecayTimePredictionExponentialsVariables(vessel);
+                            TimeUntilDecayInDays = FormatTimeUntilDecayInDaysToString(TimeUntilDecayInUnits);
                         }
                         else
                         {
-                            double DecayRateX = 0.0;
-                            if (Realistic == true)
-                            {
-                                DecayRateX = (((DecayManager.DecayRateRealistic(vessel) * 60 * 60 * HoursInDay) / TimeWarp.CurrentRate));
-
-                                double DecayTime = (((VesselData.FetchSMA(vessel)) - (vessel.orbitDriver.orbit.referenceBody.Radius)) / ((DecayRateX)));
-
-                                if ((DecayTime / 425) > 1000 && HoursInDay == 6)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
-                                }
-
-                                else if ((DecayTime / 365) > 1000 && HoursInDay == 24)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
-                                }
-
-                                else
-                                {
-
-                                    if (DecayTime < 0 && DecayTime >= -500)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: Decay Imminent");
-                                    }
-
-                                    else if (DecayTime < -500) // Used for SRP decay
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
-                                    }
-
-                                    if (DecayTime >= 0 && DecayTime <= 365 && HoursInDay == 24)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
-                                    }
-                                    else if (DecayTime > 365 && HoursInDay == 24)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: " + (DecayTime / 365).ToString("F1") + " years.");
-                                    }
-                                    if (DecayTime >= 0 && DecayTime <= 425 && HoursInDay == 6)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: " + (DecayTime).ToString("F1") + " days.");
-                                    }
-                                    else if (DecayTime > 425 && HoursInDay == 6)
-                                    {
-                                        GUILayout.Label("Approximate Time Until Decay: " + (DecayTime / 425).ToString("F1") + " years.");
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                double StockDecayTime = DecayManager.StockDecayTimePrediction(vessel);
-
-                                if ((StockDecayTime / DaysInYear) > 1000)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: > 1000 years.");
-                                }
-
-                                else if (StockDecayTime > DaysInYear)
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: " + (StockDecayTime / DaysInYear).ToString("F1") + " years.");
-                                }
-                                else
-                                {
-                                    GUILayout.Label("Approximate Time Until Decay: " + StockDecayTime.ToString("F1") + " days.");
-                                }
-                            }
+                            TimeUntilDecayInUnits = DecayManager.DecayTimePredictionLinearVariables(vessel);
+                            TimeUntilDecayInDays = FormatTimeUntilDecayInSecondsToString(TimeUntilDecayInUnits);
                         }
+
+                        GUILayout.Label("Approximate Time Until Decay: " + TimeUntilDecayInDays);
                         GUILayout.Space(2);
                     }
 
@@ -426,18 +274,13 @@ namespace WhitecatIndustries
                     if (StationKeeping == "True")
                     {
                         double DecayRateSKL = 0;
-                        if (Realistic == true)
-                        {
-                            DecayRateSKL = (DecayManager.DecayRateRealistic(vessel));
-                        }
-                        else
-                        {
-                            DecayRateSKL = (DecayManager.DecayRateStock(vessel));
-                        }
+
+                        DecayRateSKL = DecayManager.DecayRateAtmosphericDrag(vessel) + DecayManager.DecayRateRadiationPressure(vessel) + DecayManager.DecayRateYarkovskyEffect(vessel);
+
 
                         double StationKeepingLifetime = (double.Parse(StationKeepingFuelRemaining) / ((DecayRateSKL / TimeWarp.CurrentRate) * ResourceManager.GetEfficiency(Resource) * Settings.ReadResourceRateDifficulty())) / (60 * 60 * HoursInDay);
 
-                        if (StationKeepingLifetime < -50) // SRP Fixes
+                        if (StationKeepingLifetime < -5) // SRP Fixes
                         {
                             GUILayout.Label("Station Keeping Fuel Lifetime: > 1000 years.");
                         }
@@ -488,7 +331,7 @@ namespace WhitecatIndustries
                         {
                             if (StationKeepingManager.EngineCheck(vessel) == true)
                             {
-                                if ((double.Parse(StationKeepingFuelRemaining) > 0.01 )) // Good enough...
+                                if ((double.Parse(StationKeepingFuelRemaining) > 0.01)) // Good enough...
                                 {
                                     VesselData.UpdateStationKeeping(vessel, true);
                                     ScreenMessages.PostScreenMessage("Vessel: " + vessel.vesselName + (": Station Keeping Enabled"));
@@ -509,9 +352,10 @@ namespace WhitecatIndustries
                     GUILayout.Space(3);
                     GUILayout.EndVertical();
                 }
-                
+
             }
             GUILayout.EndScrollView();
+
         }
 
         public void SettingsTab()
@@ -532,19 +376,6 @@ namespace WhitecatIndustries
             var DecayDifficulty = Settings.ReadDecayDifficulty();
             var ResourceDifficulty = Settings.ReadResourceRateDifficulty();
 
-          /*  if (GUILayout.Button("Toggle Realistic Decay")) // Realistic decay useless on a Stock Game
-            {
-                Settings.WriteRD(!Settings.ReadRD());
-                if (Settings.ReadRD() == true)
-                {
-                    ScreenMessages.PostScreenMessage("Realistic Decay Enabled - Stock model disabled");
-                }
-                else
-                {
-                    ScreenMessages.PostScreenMessage("Realistic Decay Disabled - Stock model in use");
-                }
-            }
-           */
             GUILayout.Space(2);
             if (GUILayout.Button("Toggle Kerbin Day (6 hour) / Earth Day (24 hour)"))
             {
@@ -658,6 +489,184 @@ namespace WhitecatIndustries
             }
 
             GUILayout.EndVertical();
+        }
+
+        public string FormatDecayRateToString(double DecayRate)
+        {
+            double TimewarpRate = 0;
+
+            DecayRate = Math.Abs(DecayRate);
+
+            if (TimeWarp.CurrentRate == 0)
+            {
+                TimewarpRate = 1;
+            }
+            else
+            {
+                TimewarpRate = TimeWarp.CurrentRate;
+            }
+
+            DecayRate = DecayRate / TimewarpRate;
+            string DecayRateString = "";
+            double SecondsInYear = 0.0;
+            double HoursInDay = 0.0;
+
+            bool KerbinTime = GameSettings.KERBIN_TIME;
+
+            if (KerbinTime)
+            {
+                SecondsInYear = 9203545;
+                HoursInDay = 6;
+            }
+            else
+            {
+                SecondsInYear = 31557600;
+                HoursInDay = 24;
+            }
+
+            double DecayRatePerDay = DecayRate * 60 * 60 * HoursInDay;
+            double DecayRatePerYear = DecayRate * SecondsInYear;
+
+            // Daily Rates //
+
+            if (DecayRatePerDay > 1000.0)
+            {
+                DecayRateString = (DecayRatePerDay / 1000.0).ToString("F1") + "Km per day.";
+            }
+
+            else if (DecayRatePerDay <= 1000.0 && DecayRatePerDay >= 1.0)
+            {
+                DecayRateString = (DecayRatePerDay).ToString("F1") + "m per day.";
+            }
+
+            else if (DecayRatePerDay < 1.0 && DecayRatePerDay >= 0.01)
+            {
+                DecayRateString = (DecayRatePerDay * 10).ToString("F1") + "cm per day.";
+            }
+
+            else if (DecayRatePerDay < 0.01 && DecayRatePerDay >= 0.001)
+            {
+                DecayRateString = (DecayRatePerDay * 100).ToString("F1") + "mm per day.";
+            }
+
+            else if (DecayRatePerDay < 0.001)
+            {
+                if (DecayRatePerYear > 1000.0)
+                {
+                    DecayRateString = (DecayRatePerYear / 1000.0).ToString("F1") + "Km per year.";
+                }
+
+                else if (DecayRatePerYear <= 1000.0 && DecayRatePerYear >= 1.0)
+                {
+                    DecayRateString = (DecayRatePerYear).ToString("F1") + "m per year.";
+                }
+
+                else if (DecayRatePerYear < 1.0 && DecayRatePerYear >= 0.01)
+                {
+                    DecayRateString = (DecayRatePerYear * 10).ToString("F1") + "cm per year.";
+                }
+
+                else if (DecayRatePerYear < 0.01 && DecayRatePerYear >= 0.001)
+                {
+                    DecayRateString = (DecayRatePerYear * 100).ToString("F1") + "mm per year.";
+                }
+
+                else
+                {
+                    DecayRateString = "Negligible.";
+                }
+            }
+
+
+            return DecayRateString;
+        }
+
+        public string FormatTimeUntilDecayInDaysToString(double TimeUntilDecayInDays)
+        {
+            TimeUntilDecayInDays = Math.Abs(TimeUntilDecayInDays);
+
+            string DecayTimeString = "";
+            double SecondsInYear = 0.0;
+            double HoursInDay = 0.0;
+            double DaysInYear = 0.0;
+
+            bool KerbinTime = GameSettings.KERBIN_TIME;
+
+            if (KerbinTime)
+            {
+                SecondsInYear = 9203545;
+                HoursInDay = 6;
+            }
+            else
+            {
+                SecondsInYear = 31557600;
+                HoursInDay = 24;
+            }
+
+            DaysInYear = SecondsInYear / (HoursInDay * 60 * 60);
+
+            if (TimeUntilDecayInDays > DaysInYear)
+            {
+                if ((TimeUntilDecayInDays / DaysInYear) > 1000)
+                {
+                    DecayTimeString = "> 1000 years.";
+                }
+                else
+                {
+                    DecayTimeString = (TimeUntilDecayInDays/DaysInYear).ToString("F1") + " years.";
+                }
+            }
+
+            else
+            {
+                if (TimeUntilDecayInDays > 1.0)
+                {
+                    DecayTimeString = TimeUntilDecayInDays.ToString("F1") + " days.";
+                }
+
+                else 
+                {
+                    if ((TimeUntilDecayInDays * HoursInDay) > 1.0)
+                    {
+                        DecayTimeString = (TimeUntilDecayInDays * HoursInDay).ToString("F1") + " hours.";
+                    }
+
+                    else
+                    {
+                        DecayTimeString = "Decay Imminent.";
+                    }
+                }
+            }
+
+
+            return DecayTimeString;
+        }
+
+        public string FormatTimeUntilDecayInSecondsToString(double TimeUntilDecayInSeconds)
+        {
+            TimeUntilDecayInSeconds = Math.Abs(TimeUntilDecayInSeconds);
+
+            string DecayTimeString = "";
+            double SecondsInYear = 0.0;
+
+            bool KerbinTime = GameSettings.KERBIN_TIME;
+
+            if (KerbinTime)
+            {
+                SecondsInYear = 9203545;
+            }
+            else
+            {
+                SecondsInYear = 31557600;
+            }
+
+            DecayTimeString = KSPUtil.dateTimeFormatter.PrintTime(Math.Abs(TimeUntilDecayInSeconds), 2, false);
+            if (TimeUntilDecayInSeconds > 1000 * SecondsInYear)
+            {
+                DecayTimeString = "> 1000 years.";
+            }
+
+            return DecayTimeString;
         }
     }
 }

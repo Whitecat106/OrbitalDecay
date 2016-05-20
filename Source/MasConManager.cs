@@ -44,8 +44,635 @@ namespace WhitecatIndustries
             MasConData.LoadData();
         }
 
-        // If MasConData.CheckMasConProximity = true then do these
+        #region LongPeriod
 
+        public static double GetSecularSMAChange(Vessel vessel, double LAN, double MNA, double LPE, double e, double Inc, double SMA, double EPH)
+        {
+            #region GenericEquations
+
+            double EquivalentAltitude = 0;
+            double AltitudeAp = (SMA * (1 + e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            double AltitudePe = (SMA * (1 - e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            EquivalentAltitude = (AltitudePe) + 900.0 * Math.Pow(e, (double)0.6);
+
+            double GalAtVesselDistance = 0;
+            double CentreLat = 0;
+            double CentreLong = 0;
+            double CentreGal = 0;
+            double GalToGFactor = 0.00101972;
+
+            //Required for Integration 
+
+            if (vessel.orbitDriver.orbit.referenceBody.GetName() == "Earth" || vessel.orbitDriver.orbit.referenceBody.GetName() == "Kerbin") // At the moment only these modeled
+            {
+                GalAtVesselDistance = MasConData.GalAtPosition(vessel);
+                CentreLat = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLat"));
+                CentreGal = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreGal"));
+                CentreLong = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLong"));
+            }
+            else
+            {
+                GalAtVesselDistance = UnityEngine.Random.Range((float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 0.9995), (float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 1.0005));
+                CentreLat = vessel.latitude;
+                CentreLong = vessel.longitude;
+                CentreGal = GalAtVesselDistance;
+            }
+
+            double GAtVesselDistance = GalAtVesselDistance * GalToGFactor;
+
+            double RAANMascon = CentreLong; // [Degrees]
+            double DECMascon = CentreLat; // [Degrees]
+            double RAANVessel = vessel.longitude; // [Degrees]
+            double DECVessel = vessel.latitude; // [Degrees]
+
+            double TrueAnomaly = vessel.orbitDriver.orbit.trueAnomaly; //Math.Acos((((1.0 - (e * e)) / (SMA / EquivalentAltitude)) - 1.0) / e); // v [Degrees]
+            double ArgumentOfLatitude = MasConData.ToRadians(LPE) + TrueAnomaly; // u [Degrees]
+
+            ///
+            ArgumentOfLatitude = MasConData.ToDegrees(ArgumentOfLatitude); // u [Radians]
+            ///
+
+            if (double.IsNaN(TrueAnomaly))
+            {
+                TrueAnomaly = 0.0;
+            }
+
+            //print("TrueAnomaly: " + TrueAnomaly);
+
+            double SubvectorA = Math.Cos(DECMascon) * Math.Cos(RAANMascon - RAANVessel); // A [Vector]
+            double SubvectorB = Math.Sin(Inc) * Math.Sin(DECMascon) + Math.Cos(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // B [Vector]
+            double SubvectorC = Math.Cos(Inc) * Math.Sin(DECMascon) - Math.Sin(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // C [Vector]
+
+            //print("SubvectA: " + SubvectorA);
+            //print("SubvectB: " + SubvectorB);
+            //print("SubvectC: " + SubvectorC);
+
+            double GravitationalConstant = 6.67408 * Math.Pow(10.0, -11.0); // G [Newton Meter Squared per Square Kilograms] 
+            double GravitationalParameter = vessel.orbitDriver.orbit.referenceBody.gravParameter; // Mu [Newton Meter Squared Per Kilogram] 
+            double BodyMass = vessel.orbitDriver.orbit.referenceBody.Mass; // M [Kilograms]
+            double BodyGASL = vessel.orbitDriver.orbit.referenceBody.GeeASL; // Fg [Gee ASL]
+            double BodyRadius = vessel.orbitDriver.orbit.referenceBody.Radius; // R [Meters] 
+            double VesselAltitude = vessel.orbitDriver.orbit.semiMajorAxis - BodyRadius; // r [Meters]
+            double MasConMass = (((BodyRadius * BodyRadius)) * ((GalAtVesselDistance * GalToGFactor) + (BodyGASL)) * 9.81) / (GravitationalConstant * BodyMass); // m [Kilograms] (CentreGal * GalToGFactor)
+
+
+            MasConMass = Math.Abs((1.0 - MasConMass) * BodyMass); // Work on this here to made Gal changes effect orbits
+
+            double SubvectorR = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (2.0 * VesselAltitude))) *
+                (1.0 - (3.0f / 2.0f) * (Math.Pow(SubvectorA, 2.0) + Math.Pow(SubvectorB, 2.0)) - 3.0 * SubvectorA * SubvectorB * Math.Sin(2.0 * ArgumentOfLatitude) - (3.0f / 2.0f) *
+                (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Cos(2.0 * ArgumentOfLatitude)); // R- [Vector]
+
+            double SubvectorQ = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * ((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude)) *
+                (SubvectorA * SubvectorB * Math.Cos(2.0 * ArgumentOfLatitude) - (1.0 / 2.0) * (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Sin(2.0 * ArgumentOfLatitude)); // Q- [Vector]
+
+            double SubvectorS = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude))) *
+                SubvectorC * (SubvectorA * Math.Cos(ArgumentOfLatitude) + SubvectorB * Math.Sin(ArgumentOfLatitude)); // S- [Vector] 
+
+            //print("SubVectR: " + SubvectorR);
+            //print("SubVectQ: " + SubvectorQ);
+            //print("SubVectS: " + SubvectorS);
+
+            double MeanMotion = (360.0) / vessel.orbitDriver.orbit.period; //Math.Sqrt(GravitationalParameter / (Math.Pow(SMA, 3.0))); // n [Radians per Second] 
+            double SemiLatusRectum = SMA * (1.0 - (Math.Pow(e, 2.0))); // p [Meters] 
+
+            //print("MeanMotion: " + MeanMotion);
+            //print("SemiLatusRectum: " + SemiLatusRectum);
+
+            double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
+            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
+            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+
+            double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
+            ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
+
+            /// Find the Rate Of Change of True Anomaly /// 
+
+            double InitialTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime); //Math.Acos((Math.Cos(ExactInitialEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactInitialEccentricAnomaly)));
+            double FinalTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime + TimeInterval); // Math.Acos((Math.Cos(ExactFinalEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactFinalEccentricAnomaly)));
+            double RateOfChangeOfTrueAnomaly = Math.Abs(FinalTrueAnomaly - InitialTrueAnomaly); // v-  [Degrees per Second]  // Possibly remove absolution. 
+
+            //print("InitialTrueAnom: " + InitialTrueAnomaly);
+            //print("FinalTrueAnom: " + FinalTrueAnomaly);
+
+            if (double.IsNaN(RateOfChangeOfTrueAnomaly))
+            {
+                RateOfChangeOfTrueAnomaly = 0.0;
+            }
+
+            //print("RateOfChangeOfTrueAnomaly: " + RateOfChangeOfTrueAnomaly);
+
+            ///// Generic Equations Finished ///// 
+
+            #endregion
+
+            return -0.01 * TimeWarp.CurrentRate; // Averages to - 0.01 * Timewarp rate -- In reality cancels to zero Adjust this 
+        }
+
+        public static double GetSecularECCChange(Vessel vessel, double LAN, double MNA, double LPE, double e, double Inc, double SMA, double EPH)
+        {
+            #region GenericEquations
+
+            double EquivalentAltitude = 0;
+            double AltitudeAp = (SMA * (1 + e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            double AltitudePe = (SMA * (1 - e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            EquivalentAltitude = (AltitudePe) + 900.0 * Math.Pow(e, (double)0.6);
+
+            double GalAtVesselDistance = 0;
+            double CentreLat = 0;
+            double CentreLong = 0;
+            double CentreGal = 0;
+            double GalToGFactor = 0.00101972;
+
+            //Required for Integration 
+
+            if (vessel.orbitDriver.orbit.referenceBody.GetName() == "Earth" || vessel.orbitDriver.orbit.referenceBody.GetName() == "Kerbin") // At the moment only these modeled
+            {
+                GalAtVesselDistance = MasConData.GalAtPosition(vessel);
+                CentreLat = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLat"));
+                CentreGal = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreGal"));
+                CentreLong = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLong"));
+            }
+            else
+            {
+                GalAtVesselDistance = UnityEngine.Random.Range((float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 0.9995), (float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 1.0005));
+                CentreLat = vessel.latitude;
+                CentreLong = vessel.longitude;
+                CentreGal = GalAtVesselDistance;
+            }
+
+            double GAtVesselDistance = GalAtVesselDistance * GalToGFactor;
+
+            double RAANMascon = CentreLong; // [Degrees]
+            double DECMascon = CentreLat; // [Degrees]
+            double RAANVessel = vessel.longitude; // [Degrees]
+            double DECVessel = vessel.latitude; // [Degrees]
+
+            double TrueAnomaly = vessel.orbitDriver.orbit.trueAnomaly; //Math.Acos((((1.0 - (e * e)) / (SMA / EquivalentAltitude)) - 1.0) / e); // v [Degrees]
+            double ArgumentOfLatitude = MasConData.ToRadians(LPE) + TrueAnomaly; // u [Degrees]
+
+            ///
+            ArgumentOfLatitude = MasConData.ToDegrees(ArgumentOfLatitude); // u [Radians]
+            ///
+
+            if (double.IsNaN(TrueAnomaly))
+            {
+                TrueAnomaly = 0.0;
+            }
+
+            //print("TrueAnomaly: " + TrueAnomaly);
+
+            double SubvectorA = Math.Cos(DECMascon) * Math.Cos(RAANMascon - RAANVessel); // A [Vector]
+            double SubvectorB = Math.Sin(Inc) * Math.Sin(DECMascon) + Math.Cos(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // B [Vector]
+            double SubvectorC = Math.Cos(Inc) * Math.Sin(DECMascon) - Math.Sin(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // C [Vector]
+
+            //print("SubvectA: " + SubvectorA);
+            //print("SubvectB: " + SubvectorB);
+            //print("SubvectC: " + SubvectorC);
+
+            double GravitationalConstant = 6.67408 * Math.Pow(10.0, -11.0); // G [Newton Meter Squared per Square Kilograms] 
+            double GravitationalParameter = vessel.orbitDriver.orbit.referenceBody.gravParameter; // Mu [Newton Meter Squared Per Kilogram] 
+            double BodyMass = vessel.orbitDriver.orbit.referenceBody.Mass; // M [Kilograms]
+            double BodyGASL = vessel.orbitDriver.orbit.referenceBody.GeeASL; // Fg [Gee ASL]
+            double BodyRadius = vessel.orbitDriver.orbit.referenceBody.Radius; // R [Meters] 
+            double VesselAltitude = vessel.orbitDriver.orbit.semiMajorAxis - BodyRadius; // r [Meters]
+            double MasConMass = (((BodyRadius * BodyRadius)) * ((GalAtVesselDistance * GalToGFactor) + (BodyGASL)) * 9.81) / (GravitationalConstant * BodyMass); // m [Kilograms] (CentreGal * GalToGFactor)
+
+
+            MasConMass = Math.Abs((1.0 - MasConMass) * BodyMass); // Work on this here to made Gal changes effect orbits
+
+            double SubvectorR = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (2.0 * VesselAltitude))) *
+                (1.0 - (3.0f / 2.0f) * (Math.Pow(SubvectorA, 2.0) + Math.Pow(SubvectorB, 2.0)) - 3.0 * SubvectorA * SubvectorB * Math.Sin(2.0 * ArgumentOfLatitude) - (3.0f / 2.0f) *
+                (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Cos(2.0 * ArgumentOfLatitude)); // R- [Vector]
+
+            double SubvectorQ = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * ((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude)) *
+                (SubvectorA * SubvectorB * Math.Cos(2.0 * ArgumentOfLatitude) - (1.0 / 2.0) * (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Sin(2.0 * ArgumentOfLatitude)); // Q- [Vector]
+
+            double SubvectorS = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude))) *
+                SubvectorC * (SubvectorA * Math.Cos(ArgumentOfLatitude) + SubvectorB * Math.Sin(ArgumentOfLatitude)); // S- [Vector] 
+
+            //print("SubVectR: " + SubvectorR);
+            //print("SubVectQ: " + SubvectorQ);
+            //print("SubVectS: " + SubvectorS);
+
+            double MeanMotion = (360.0) / vessel.orbitDriver.orbit.period; //Math.Sqrt(GravitationalParameter / (Math.Pow(SMA, 3.0))); // n [Radians per Second] 
+            double SemiLatusRectum = SMA * (1.0 - (Math.Pow(e, 2.0))); // p [Meters] 
+
+            //print("MeanMotion: " + MeanMotion);
+            //print("SemiLatusRectum: " + SemiLatusRectum);
+
+            double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
+            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
+            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+
+            double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
+            ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
+
+            /// Find the Rate Of Change of True Anomaly /// 
+
+            double InitialTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime); //Math.Acos((Math.Cos(ExactInitialEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactInitialEccentricAnomaly)));
+            double FinalTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime + TimeInterval); // Math.Acos((Math.Cos(ExactFinalEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactFinalEccentricAnomaly)));
+            double RateOfChangeOfTrueAnomaly = Math.Abs(FinalTrueAnomaly - InitialTrueAnomaly); // v-  [Degrees per Second]  // Possibly remove absolution. 
+
+            //print("InitialTrueAnom: " + InitialTrueAnomaly);
+            //print("FinalTrueAnom: " + FinalTrueAnomaly);
+
+            if (double.IsNaN(RateOfChangeOfTrueAnomaly))
+            {
+                RateOfChangeOfTrueAnomaly = 0.0;
+            }
+
+            //print("RateOfChangeOfTrueAnomaly: " + RateOfChangeOfTrueAnomaly);
+
+            ///// Generic Equations Finished ///// 
+
+            #endregion
+
+            return 0; // Cancels to zero
+        }
+
+        public static double GetSecularLANChange(Vessel vessel, double LAN, double MNA, double LPE, double e, double Inc, double SMA, double EPH)
+        {
+            #region GenericEquations
+
+            double EquivalentAltitude = 0;
+            double AltitudeAp = (SMA * (1 + e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            double AltitudePe = (SMA * (1 - e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            EquivalentAltitude = (AltitudePe) + 900.0 * Math.Pow(e, (double)0.6);
+
+            double GalAtVesselDistance = 0;
+            double CentreLat = 0;
+            double CentreLong = 0;
+            double CentreGal = 0;
+            double GalToGFactor = 0.00101972;
+
+            //Required for Integration 
+
+            if (vessel.orbitDriver.orbit.referenceBody.GetName() == "Earth" || vessel.orbitDriver.orbit.referenceBody.GetName() == "Kerbin") // At the moment only these modeled
+            {
+                GalAtVesselDistance = MasConData.GalAtPosition(vessel);
+                CentreLat = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLat"));
+                CentreGal = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreGal"));
+                CentreLong = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLong"));
+            }
+            else
+            {
+                GalAtVesselDistance = UnityEngine.Random.Range((float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 0.9995), (float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 1.0005));
+                CentreLat = vessel.latitude;
+                CentreLong = vessel.longitude;
+                CentreGal = GalAtVesselDistance;
+            }
+
+            double GAtVesselDistance = GalAtVesselDistance * GalToGFactor;
+
+            double RAANMascon = CentreLong; // [Degrees]
+            double DECMascon = CentreLat; // [Degrees]
+            double RAANVessel = vessel.longitude; // [Degrees]
+            double DECVessel = vessel.latitude; // [Degrees]
+
+            double TrueAnomaly = vessel.orbitDriver.orbit.trueAnomaly; //Math.Acos((((1.0 - (e * e)) / (SMA / EquivalentAltitude)) - 1.0) / e); // v [Degrees]
+            double ArgumentOfLatitude = MasConData.ToRadians(LPE) + TrueAnomaly; // u [Degrees]
+
+            ///
+            ArgumentOfLatitude = MasConData.ToDegrees(ArgumentOfLatitude); // u [Radians]
+            ///
+
+            if (double.IsNaN(TrueAnomaly))
+            {
+                TrueAnomaly = 0.0;
+            }
+
+            //print("TrueAnomaly: " + TrueAnomaly);
+
+            double SubvectorA = Math.Cos(DECMascon) * Math.Cos(RAANMascon - RAANVessel); // A [Vector]
+            double SubvectorB = Math.Sin(Inc) * Math.Sin(DECMascon) + Math.Cos(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // B [Vector]
+            double SubvectorC = Math.Cos(Inc) * Math.Sin(DECMascon) - Math.Sin(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // C [Vector]
+
+            //print("SubvectA: " + SubvectorA);
+            //print("SubvectB: " + SubvectorB);
+            //print("SubvectC: " + SubvectorC);
+
+            double GravitationalConstant = 6.67408 * Math.Pow(10.0, -11.0); // G [Newton Meter Squared per Square Kilograms] 
+            double GravitationalParameter = vessel.orbitDriver.orbit.referenceBody.gravParameter; // Mu [Newton Meter Squared Per Kilogram] 
+            double BodyMass = vessel.orbitDriver.orbit.referenceBody.Mass; // M [Kilograms]
+            double BodyGASL = vessel.orbitDriver.orbit.referenceBody.GeeASL; // Fg [Gee ASL]
+            double BodyRadius = vessel.orbitDriver.orbit.referenceBody.Radius; // R [Meters] 
+            double VesselAltitude = vessel.orbitDriver.orbit.semiMajorAxis - BodyRadius; // r [Meters]
+            double MasConMass = (((BodyRadius * BodyRadius)) * ((GalAtVesselDistance * GalToGFactor) + (BodyGASL)) * 9.81) / (GravitationalConstant * BodyMass); // m [Kilograms] (CentreGal * GalToGFactor)
+
+
+            MasConMass = Math.Abs((1.0 - MasConMass) * BodyMass); // Work on this here to made Gal changes effect orbits
+
+            double SubvectorR = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (2.0 * VesselAltitude))) *
+                (1.0 - (3.0f / 2.0f) * (Math.Pow(SubvectorA, 2.0) + Math.Pow(SubvectorB, 2.0)) - 3.0 * SubvectorA * SubvectorB * Math.Sin(2.0 * ArgumentOfLatitude) - (3.0f / 2.0f) *
+                (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Cos(2.0 * ArgumentOfLatitude)); // R- [Vector]
+
+            double SubvectorQ = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * ((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude)) *
+                (SubvectorA * SubvectorB * Math.Cos(2.0 * ArgumentOfLatitude) - (1.0 / 2.0) * (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Sin(2.0 * ArgumentOfLatitude)); // Q- [Vector]
+
+            double SubvectorS = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude))) *
+                SubvectorC * (SubvectorA * Math.Cos(ArgumentOfLatitude) + SubvectorB * Math.Sin(ArgumentOfLatitude)); // S- [Vector] 
+
+            //print("SubVectR: " + SubvectorR);
+            //print("SubVectQ: " + SubvectorQ);
+            //print("SubVectS: " + SubvectorS);
+
+            double MeanMotion = (360.0) / vessel.orbitDriver.orbit.period; //Math.Sqrt(GravitationalParameter / (Math.Pow(SMA, 3.0))); // n [Radians per Second] 
+            double SemiLatusRectum = SMA * (1.0 - (Math.Pow(e, 2.0))); // p [Meters] 
+
+            //print("MeanMotion: " + MeanMotion);
+            //print("SemiLatusRectum: " + SemiLatusRectum);
+
+            double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
+            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
+            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+
+            double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
+            ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
+
+            /// Find the Rate Of Change of True Anomaly /// 
+
+            double InitialTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime); //Math.Acos((Math.Cos(ExactInitialEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactInitialEccentricAnomaly)));
+            double FinalTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime + TimeInterval); // Math.Acos((Math.Cos(ExactFinalEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactFinalEccentricAnomaly)));
+            double RateOfChangeOfTrueAnomaly = Math.Abs(FinalTrueAnomaly - InitialTrueAnomaly); // v-  [Degrees per Second]  // Possibly remove absolution. 
+
+            //print("InitialTrueAnom: " + InitialTrueAnomaly);
+            //print("FinalTrueAnom: " + FinalTrueAnomaly);
+
+            if (double.IsNaN(RateOfChangeOfTrueAnomaly))
+            {
+                RateOfChangeOfTrueAnomaly = 0.0;
+            }
+
+            //print("RateOfChangeOfTrueAnomaly: " + RateOfChangeOfTrueAnomaly);
+
+            ///// Generic Equations Finished ///// 
+
+            #endregion
+
+            double TimePassedPerIntervalOfTimewarp = TimeWarp.CurrentRate * TimeInterval;
+            double NoOfRevolutions = (TimePassedPerIntervalOfTimewarp / vessel.orbitDriver.orbit.period);
+
+            double DeltaLAN = 3.0 * Math.PI * (MasConMass / BodyMass) * Math.Pow((BodyRadius / SemiLatusRectum), 2.0) * ((SubvectorB * SubvectorC) / Math.Sin(Inc));
+            return DeltaLAN * NoOfRevolutions; // Change in LAN during the timewarp period
+        }
+
+        public static double GetSecularLPEChange(Vessel vessel, double LAN, double MNA, double LPE, double e, double Inc, double SMA, double EPH)
+        {
+            #region GenericEquations
+
+            double EquivalentAltitude = 0;
+            double AltitudeAp = (SMA * (1 + e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            double AltitudePe = (SMA * (1 - e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            EquivalentAltitude = (AltitudePe) + 900.0 * Math.Pow(e, (double)0.6);
+
+            double GalAtVesselDistance = 0;
+            double CentreLat = 0;
+            double CentreLong = 0;
+            double CentreGal = 0;
+            double GalToGFactor = 0.00101972;
+
+            //Required for Integration 
+
+            if (vessel.orbitDriver.orbit.referenceBody.GetName() == "Earth" || vessel.orbitDriver.orbit.referenceBody.GetName() == "Kerbin") // At the moment only these modeled
+            {
+                GalAtVesselDistance = MasConData.GalAtPosition(vessel);
+                CentreLat = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLat"));
+                CentreGal = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreGal"));
+                CentreLong = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLong"));
+            }
+            else
+            {
+                GalAtVesselDistance = UnityEngine.Random.Range((float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 0.9995), (float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 1.0005));
+                CentreLat = vessel.latitude;
+                CentreLong = vessel.longitude;
+                CentreGal = GalAtVesselDistance;
+            }
+
+            double GAtVesselDistance = GalAtVesselDistance * GalToGFactor;
+
+            double RAANMascon = CentreLong; // [Degrees]
+            double DECMascon = CentreLat; // [Degrees]
+            double RAANVessel = vessel.longitude; // [Degrees]
+            double DECVessel = vessel.latitude; // [Degrees]
+
+            double TrueAnomaly = vessel.orbitDriver.orbit.trueAnomaly; //Math.Acos((((1.0 - (e * e)) / (SMA / EquivalentAltitude)) - 1.0) / e); // v [Degrees]
+            double ArgumentOfLatitude = MasConData.ToRadians(LPE) + TrueAnomaly; // u [Degrees]
+
+            ///
+            ArgumentOfLatitude = MasConData.ToDegrees(ArgumentOfLatitude); // u [Radians]
+            ///
+
+            if (double.IsNaN(TrueAnomaly))
+            {
+                TrueAnomaly = 0.0;
+            }
+
+            //print("TrueAnomaly: " + TrueAnomaly);
+
+            double SubvectorA = Math.Cos(DECMascon) * Math.Cos(RAANMascon - RAANVessel); // A [Vector]
+            double SubvectorB = Math.Sin(Inc) * Math.Sin(DECMascon) + Math.Cos(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // B [Vector]
+            double SubvectorC = Math.Cos(Inc) * Math.Sin(DECMascon) - Math.Sin(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // C [Vector]
+
+            //print("SubvectA: " + SubvectorA);
+            //print("SubvectB: " + SubvectorB);
+            //print("SubvectC: " + SubvectorC);
+
+            double GravitationalConstant = 6.67408 * Math.Pow(10.0, -11.0); // G [Newton Meter Squared per Square Kilograms] 
+            double GravitationalParameter = vessel.orbitDriver.orbit.referenceBody.gravParameter; // Mu [Newton Meter Squared Per Kilogram] 
+            double BodyMass = vessel.orbitDriver.orbit.referenceBody.Mass; // M [Kilograms]
+            double BodyGASL = vessel.orbitDriver.orbit.referenceBody.GeeASL; // Fg [Gee ASL]
+            double BodyRadius = vessel.orbitDriver.orbit.referenceBody.Radius; // R [Meters] 
+            double VesselAltitude = vessel.orbitDriver.orbit.semiMajorAxis - BodyRadius; // r [Meters]
+            double MasConMass = (((BodyRadius * BodyRadius)) * ((GalAtVesselDistance * GalToGFactor) + (BodyGASL)) * 9.81) / (GravitationalConstant * BodyMass); // m [Kilograms] (CentreGal * GalToGFactor)
+
+
+            MasConMass = Math.Abs((1.0 - MasConMass) * BodyMass); // Work on this here to made Gal changes effect orbits
+
+            double SubvectorR = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (2.0 * VesselAltitude))) *
+                (1.0 - (3.0f / 2.0f) * (Math.Pow(SubvectorA, 2.0) + Math.Pow(SubvectorB, 2.0)) - 3.0 * SubvectorA * SubvectorB * Math.Sin(2.0 * ArgumentOfLatitude) - (3.0f / 2.0f) *
+                (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Cos(2.0 * ArgumentOfLatitude)); // R- [Vector]
+
+            double SubvectorQ = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * ((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude)) *
+                (SubvectorA * SubvectorB * Math.Cos(2.0 * ArgumentOfLatitude) - (1.0 / 2.0) * (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Sin(2.0 * ArgumentOfLatitude)); // Q- [Vector]
+
+            double SubvectorS = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude))) *
+                SubvectorC * (SubvectorA * Math.Cos(ArgumentOfLatitude) + SubvectorB * Math.Sin(ArgumentOfLatitude)); // S- [Vector] 
+
+            //print("SubVectR: " + SubvectorR);
+            //print("SubVectQ: " + SubvectorQ);
+            //print("SubVectS: " + SubvectorS);
+
+            double MeanMotion = (360.0) / vessel.orbitDriver.orbit.period; //Math.Sqrt(GravitationalParameter / (Math.Pow(SMA, 3.0))); // n [Radians per Second] 
+            double SemiLatusRectum = SMA * (1.0 - (Math.Pow(e, 2.0))); // p [Meters] 
+
+            //print("MeanMotion: " + MeanMotion);
+            //print("SemiLatusRectum: " + SemiLatusRectum);
+
+            double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
+            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
+            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+
+            double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
+            ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
+
+            /// Find the Rate Of Change of True Anomaly /// 
+
+            double InitialTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime); //Math.Acos((Math.Cos(ExactInitialEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactInitialEccentricAnomaly)));
+            double FinalTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime + TimeInterval); // Math.Acos((Math.Cos(ExactFinalEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactFinalEccentricAnomaly)));
+            double RateOfChangeOfTrueAnomaly = Math.Abs(FinalTrueAnomaly - InitialTrueAnomaly); // v-  [Degrees per Second]  // Possibly remove absolution. 
+
+            //print("InitialTrueAnom: " + InitialTrueAnomaly);
+            //print("FinalTrueAnom: " + FinalTrueAnomaly);
+
+            if (double.IsNaN(RateOfChangeOfTrueAnomaly))
+            {
+                RateOfChangeOfTrueAnomaly = 0.0;
+            }
+
+            //print("RateOfChangeOfTrueAnomaly: " + RateOfChangeOfTrueAnomaly);
+
+            ///// Generic Equations Finished ///// 
+
+            #endregion
+
+            double TimePassedPerIntervalOfTimewarp = TimeWarp.CurrentRate * TimeInterval;
+            double NoOfRevolutions = (TimePassedPerIntervalOfTimewarp / vessel.orbitDriver.orbit.period);
+
+            double DeltaLPE = - (3.0 * Math.PI * (MasConMass / BodyMass) * Math.Pow((BodyRadius / SemiLatusRectum), 2.0) * (1.0 - ((3.0 / 2.0) * (Math.Pow(SubvectorA, 2.0) +
+                Math.Pow(SubvectorB, 2.0))))) - Math.Cos(Inc) * GetSecularLANChange(vessel, LAN, MNA, LPE, e, Inc, SMA, EPH);
+            return DeltaLPE * NoOfRevolutions; // Change in LPE during the timewarp period 
+        }
+
+        public static double GetSecularIncChange(Vessel vessel, double LAN, double MNA, double LPE, double e, double Inc, double SMA, double EPH)
+        {
+            #region GenericEquations
+
+            double EquivalentAltitude = 0;
+            double AltitudeAp = (SMA * (1 + e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            double AltitudePe = (SMA * (1 - e) - vessel.orbitDriver.orbit.referenceBody.Radius);
+            EquivalentAltitude = (AltitudePe) + 900.0 * Math.Pow(e, (double)0.6);
+
+            double GalAtVesselDistance = 0;
+            double CentreLat = 0;
+            double CentreLong = 0;
+            double CentreGal = 0;
+            double GalToGFactor = 0.00101972;
+
+            //Required for Integration 
+
+            if (vessel.orbitDriver.orbit.referenceBody.GetName() == "Earth" || vessel.orbitDriver.orbit.referenceBody.GetName() == "Kerbin") // At the moment only these modeled
+            {
+                GalAtVesselDistance = MasConData.GalAtPosition(vessel);
+                CentreLat = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLat"));
+                CentreGal = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreGal"));
+                CentreLong = double.Parse(MasConData.LocalMasCon(vessel).GetValue("centreLong"));
+            }
+            else
+            {
+                GalAtVesselDistance = UnityEngine.Random.Range((float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 0.9995), (float)(vessel.orbitDriver.orbit.referenceBody.GeeASL * GalToGFactor * 1.0005));
+                CentreLat = vessel.latitude;
+                CentreLong = vessel.longitude;
+                CentreGal = GalAtVesselDistance;
+            }
+
+            double GAtVesselDistance = GalAtVesselDistance * GalToGFactor;
+
+            double RAANMascon = CentreLong; // [Degrees]
+            double DECMascon = CentreLat; // [Degrees]
+            double RAANVessel = vessel.longitude; // [Degrees]
+            double DECVessel = vessel.latitude; // [Degrees]
+
+            double TrueAnomaly = vessel.orbitDriver.orbit.trueAnomaly; //Math.Acos((((1.0 - (e * e)) / (SMA / EquivalentAltitude)) - 1.0) / e); // v [Degrees]
+            double ArgumentOfLatitude = MasConData.ToRadians(LPE) + TrueAnomaly; // u [Degrees]
+
+            ///
+            ArgumentOfLatitude = MasConData.ToDegrees(ArgumentOfLatitude); // u [Radians]
+            ///
+
+            if (double.IsNaN(TrueAnomaly))
+            {
+                TrueAnomaly = 0.0;
+            }
+
+            //print("TrueAnomaly: " + TrueAnomaly);
+
+            double SubvectorA = Math.Cos(DECMascon) * Math.Cos(RAANMascon - RAANVessel); // A [Vector]
+            double SubvectorB = Math.Sin(Inc) * Math.Sin(DECMascon) + Math.Cos(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // B [Vector]
+            double SubvectorC = Math.Cos(Inc) * Math.Sin(DECMascon) - Math.Sin(Inc) * Math.Cos(DECMascon) * Math.Sin(RAANMascon - RAANVessel); // C [Vector]
+
+            //print("SubvectA: " + SubvectorA);
+            //print("SubvectB: " + SubvectorB);
+            //print("SubvectC: " + SubvectorC);
+
+            double GravitationalConstant = 6.67408 * Math.Pow(10.0, -11.0); // G [Newton Meter Squared per Square Kilograms] 
+            double GravitationalParameter = vessel.orbitDriver.orbit.referenceBody.gravParameter; // Mu [Newton Meter Squared Per Kilogram] 
+            double BodyMass = vessel.orbitDriver.orbit.referenceBody.Mass; // M [Kilograms]
+            double BodyGASL = vessel.orbitDriver.orbit.referenceBody.GeeASL; // Fg [Gee ASL]
+            double BodyRadius = vessel.orbitDriver.orbit.referenceBody.Radius; // R [Meters] 
+            double VesselAltitude = vessel.orbitDriver.orbit.semiMajorAxis - BodyRadius; // r [Meters]
+            double MasConMass = (((BodyRadius * BodyRadius)) * ((GalAtVesselDistance * GalToGFactor) + (BodyGASL)) * 9.81) / (GravitationalConstant * BodyMass); // m [Kilograms] (CentreGal * GalToGFactor)
+
+
+            MasConMass = Math.Abs((1.0 - MasConMass) * BodyMass); // Work on this here to made Gal changes effect orbits
+
+            double SubvectorR = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (2.0 * VesselAltitude))) *
+                (1.0 - (3.0f / 2.0f) * (Math.Pow(SubvectorA, 2.0) + Math.Pow(SubvectorB, 2.0)) - 3.0 * SubvectorA * SubvectorB * Math.Sin(2.0 * ArgumentOfLatitude) - (3.0f / 2.0f) *
+                (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Cos(2.0 * ArgumentOfLatitude)); // R- [Vector]
+
+            double SubvectorQ = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * ((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude)) *
+                (SubvectorA * SubvectorB * Math.Cos(2.0 * ArgumentOfLatitude) - (1.0 / 2.0) * (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Sin(2.0 * ArgumentOfLatitude)); // Q- [Vector]
+
+            double SubvectorS = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (VesselAltitude))) *
+                SubvectorC * (SubvectorA * Math.Cos(ArgumentOfLatitude) + SubvectorB * Math.Sin(ArgumentOfLatitude)); // S- [Vector] 
+
+            //print("SubVectR: " + SubvectorR);
+            //print("SubVectQ: " + SubvectorQ);
+            //print("SubVectS: " + SubvectorS);
+
+            double MeanMotion = (360.0) / vessel.orbitDriver.orbit.period; //Math.Sqrt(GravitationalParameter / (Math.Pow(SMA, 3.0))); // n [Radians per Second] 
+            double SemiLatusRectum = SMA * (1.0 - (Math.Pow(e, 2.0))); // p [Meters] 
+
+            //print("MeanMotion: " + MeanMotion);
+            //print("SemiLatusRectum: " + SemiLatusRectum);
+
+            double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
+            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
+            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+
+            double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
+            ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
+
+            /// Find the Rate Of Change of True Anomaly /// 
+
+            double InitialTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime); //Math.Acos((Math.Cos(ExactInitialEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactInitialEccentricAnomaly)));
+            double FinalTrueAnomaly = vessel.orbitDriver.orbit.TrueAnomalyAtT(HighLogic.CurrentGame.UniversalTime + TimeInterval); // Math.Acos((Math.Cos(ExactFinalEccentricAnomaly - e)) / (1.0 - e * Math.Cos(ExactFinalEccentricAnomaly)));
+            double RateOfChangeOfTrueAnomaly = Math.Abs(FinalTrueAnomaly - InitialTrueAnomaly); // v-  [Degrees per Second]  // Possibly remove absolution. 
+
+            //print("InitialTrueAnom: " + InitialTrueAnomaly);
+            //print("FinalTrueAnom: " + FinalTrueAnomaly);
+
+            if (double.IsNaN(RateOfChangeOfTrueAnomaly))
+            {
+                RateOfChangeOfTrueAnomaly = 0.0;
+            }
+
+            //print("RateOfChangeOfTrueAnomaly: " + RateOfChangeOfTrueAnomaly);
+
+            ///// Generic Equations Finished ///// 
+
+            #endregion
+
+            double TimePassedPerIntervalOfTimewarp = TimeWarp.CurrentRate * TimeInterval;
+            double NoOfRevolutions = (TimePassedPerIntervalOfTimewarp / vessel.orbitDriver.orbit.period);
+
+            double DeltaInc = 3.0 * Math.PI * (MasConMass / BodyMass) * Math.Pow((BodyRadius / SemiLatusRectum), 2.0) * (SubvectorA * SubvectorC);
+
+            return DeltaInc * NoOfRevolutions; // Change in Inc during the timewarp period 
+        }
+
+        #endregion
+
+        #region ShortPeriod
         public static double GetCalculatedSMAChange(Vessel vessel, double LAN, double MNA, double LPE, double e, double Inc, double SMA, double EPH)
         {
             #region GenericEquations
@@ -118,8 +745,6 @@ namespace WhitecatIndustries
 
             MasConMass = Math.Abs((1.0 - MasConMass) * BodyMass); // Work on this here to made Gal changes effect orbits
 
-            print("MasConMass: " + MasConMass);
-
             double SubvectorR = ((GravitationalConstant * MasConMass) / (Math.Pow(VesselAltitude, 3.0))) * (((3.0 * Math.Pow(BodyRadius, 2.0)) / (2.0 * VesselAltitude))) *
                 (1.0 - (3.0f / 2.0f) * (Math.Pow(SubvectorA, 2.0) + Math.Pow(SubvectorB, 2.0)) - 3.0 * SubvectorA * SubvectorB * Math.Sin(2.0 * ArgumentOfLatitude) - (3.0f / 2.0f) *
                 (Math.Pow(SubvectorA, 2.0) - Math.Pow(SubvectorB, 2.0)) * Math.Cos(2.0 * ArgumentOfLatitude)); // R- [Vector]
@@ -170,12 +795,9 @@ namespace WhitecatIndustries
             double RateOfChangeOfSemiMajorAxisDeltaTheta = ((2.0 * Math.Pow(VesselAltitude, 2.0)) / (Math.Pow(MeanMotion, 2.0) * SMA * SemiLatusRectum)) - (SubvectorR * e *
                 Math.Sin(InitialTrueAnomaly) + (SemiLatusRectum / VesselAltitude) * SubvectorQ); // da/dTheta [Meters per Degree] 
 
-            print("ChangeInSMAbyTheta: " + RateOfChangeOfSemiMajorAxisDeltaTheta);
-
             double RateOfChangeOfSemiMajorAxisDeltaTime = RateOfChangeOfSemiMajorAxisDeltaTheta * RateOfChangeOfTrueAnomaly; // Change In SMA [Meters per time interval]
             double NewSemiMajorAxis = SMA + RateOfChangeOfSemiMajorAxisDeltaTime; // [Meters per time interval]
             return RateOfChangeOfSemiMajorAxisDeltaTime * 0.1; // [Change in Meters per time interval] 
-
         }
 
         public static double GetCalculatedINCChange(Vessel vessel, double LAN, double MNA, double LPE, double e, double Inc, double SMA, double EPH)
@@ -828,5 +1450,7 @@ namespace WhitecatIndustries
             double NewMeanAnomalyAtEpoch = MNA; // Work this one out later
             return NewMeanAnomalyAtEpoch;
         }
+
+        #endregion
     }
 }
