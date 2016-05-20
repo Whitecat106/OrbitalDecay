@@ -471,7 +471,7 @@ namespace WhitecatIndustries
 
                         SetOrbitEccentricity(vessel);
                         SetOrbitINC(vessel);
-                        SetOrbitLAN(vessel);
+                        //SetOrbitLAN(vessel);
                         SetOrbitSMA(vessel);
                     }
                 }
@@ -676,6 +676,8 @@ namespace WhitecatIndustries
                     double Multipliers = (double.Parse(TimeWarp.CurrentRate.ToString("F5")) * (double)Settings.ReadDecayDifficulty());
 
                     VesselData.UpdateVesselSMA(vessel, (InitialSemiMajorAxis - (DecayValue * Multipliers)));
+                     
+                    // Possibly update vessel LAN too? - 1.5.0
                 }
         } // Requires SCS
 

@@ -235,7 +235,7 @@ namespace WhitecatIndustries
                         GUILayout.Label("Current Total Decay Rate: " + FormatDecayRateToString(TotalDecayRatePerSecond));
                         //GUILayout.Space(2);
 
-                        //if (GUILayout.Button(ButtonText2))
+                        //if (GUILayout.Button(ButtonText2)) // Display a new window here?
                         //{
                             //GUILayout.Space(2);
                             //GUILayout.Label("Current Atmospheric Drag Decay Rate: " + FormatDecayRateToString(ADDR));
@@ -660,7 +660,15 @@ namespace WhitecatIndustries
                 SecondsInYear = 31557600;
             }
 
-            DecayTimeString = KSPUtil.dateTimeFormatter.PrintTime(Math.Abs(TimeUntilDecayInSeconds), 2, false);
+            try
+            {
+                DecayTimeString = KSPUtil.dateTimeFormatter.PrintTime(Math.Abs(TimeUntilDecayInSeconds), 2, false);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                DecayTimeString = "Error!";
+            }
+            
             if (TimeUntilDecayInSeconds > 1000 * SecondsInYear)
             {
                 DecayTimeString = "> 1000 years.";
