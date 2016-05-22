@@ -78,7 +78,7 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Add(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Add(UpdateActiveVesselInformationPart);
 
-                    GameEvents.onGameStateSave.Add(QuickSaveorUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStateSave.Add(QuickSaveUpdate); // Quicksave Checks 1.5.0
                     GameEvents.onGameStatePostLoad.Add(QuickLoadUpdate); // Quickload Checks 1.5.0 
                 }
 
@@ -398,8 +398,8 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Remove(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Remove(UpdateActiveVesselInformationPart);
 
-                    GameEvents.onGameStateSave.Remove(QuicksaveorloadUpdate); // Quicksave Checks 1.5.0
-                    GameEvents.onGameStatePostLoad.Remove(QuicksaveorloadUpdate); // Quickload Checks 1.5.0 
+                    GameEvents.onGameStateSave.Remove(QuickSaveUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStatePostLoad.Remove(QuickLoadUpdate); // Quickload Checks 1.5.0 
                 }
 
                 Vessel vessel = new Vessel();  // Set Vessel Orbits
