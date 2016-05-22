@@ -1,0 +1,19 @@
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\obj\Debug\Orbital Decay (clean).csprojResolveAssemblyReference.cache
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\ClassLibrary.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\ClassLibrary.pdb
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\Assembly-CSharp.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\KSPUtil.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\SCS.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\UnityEngine.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\Assembly-CSharp-firstpass.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\SaveUpgradePipeline.Core.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\TrackIRUnity.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\UnityEngine.UI.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\KSPAssets.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\Mono.Cecil.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\Vectrosity.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\TDx.TDxInput.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\Mono.Security.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\bin\Debug\UnityEngine.xml
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\obj\Debug\ClassLibrary.dll
+C:\Users\Zajc3w\Source\Repos\OrbitalDecay\obj\Debug\ClassLibrary.pdb

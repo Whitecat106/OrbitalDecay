@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{981E7973-5E0F-4761-8306-40E3A22BC63B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>ClassLibrary</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>Orbital_Decay__clean_</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>D:\gry\KSP - Stock\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="KSPUtil">
+      <HintPath>D:\gry\KSP - Stock\KSP_x64_Data\Managed\KSPUtil.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="SCS">
+      <HintPath>D:\gry\KSP - Stock\GameData\WhitecatIndustries\SCS\SCS.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="UnityEngine">
+      <HintPath>D:\gry\KSP - Stock\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="GameData\Icon\IconToolbar.png" />
+    <Content Include="GameData\License.txt" />
+    <Content Include="GameData\OrbitalDecay1.5.0%28pre%29.dll" />
+    <Content Include="GameData\ReleaseNotes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="GameData\PluginData\MasConData.cfg" />
+    <None Include="GameData\PluginData\Settings.cfg" />
+    <None Include="GameData\PluginData\VesselData.cfg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Source\DecayManager.cs" />
+    <Compile Include="Source\LoadingCheck.cs" />
+    <Compile Include="Source\MasConData.cs" />
+    <Compile Include="Source\MasConManager.cs" />
+    <Compile Include="Source\Properties\AssemblyInfo.cs" />
+    <Compile Include="Source\ResourceManager.cs" />
+    <Compile Include="Source\Settings.cs" />
+    <Compile Include="Source\StationKeepingManager.cs" />
+    <Compile Include="Source\UserInterface.cs" />
+    <Compile Include="Source\VesselData.cs" />
+    <Compile Include="Source\YarkovskyEffect.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".git\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
+  <ProjectExtensions>
+    <VisualStudio AllowExistingFolder="true" />
+  </ProjectExtensions>
+</Project>
