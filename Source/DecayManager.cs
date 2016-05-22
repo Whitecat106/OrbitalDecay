@@ -78,8 +78,8 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Add(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Add(UpdateActiveVesselInformationPart);
 
-                    GameEvents.onGameStateSave.Add(QuicksaveorloadUpdate); // Quicksave Checks 1.5.0
-                    GameEvents.onGameStatePostLoad.Add(QuicksaveorloadUpdate); // Quickload Checks 1.5.0 
+                    GameEvents.onGameStateSave.Add(QuickSaveorUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStatePostLoad.Add(QuickLoadUpdate); // Quickload Checks 1.5.0 
                 }
 
                 // -- GameEvents //
@@ -141,16 +141,27 @@ namespace WhitecatIndustries
             }
         }
 
-        public void QuicksaveorloadUpdate(ConfigNode node)
+        public void QuickSaveUpdate(ConfigNode node)
         {
             VesselData.OnQuickSave();
 
+            if (!HighLogic.LoadedSceneIsFlight)
+            {
+                VesselData.VesselInformation.ClearNodes();
+                VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
+            }
+        } // 1.5.0 Quicksave or Quickload functionality
+        
+        public void QuickLoadUpdate(ConfigNode node)
+        {
+            VesselData.OnQuickSave();
+            VesselData.VesselInformation.ClearNodes();
             if (HighLogic.LoadedSceneIsFlight)
             {
                 VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
             }
         } // 1.5.0 Quicksave or Quickload functionality
-
+        
         public void ClearVesselOnDestroy(Vessel vessel)
         {
             VesselData.ClearVesselData(vessel);
