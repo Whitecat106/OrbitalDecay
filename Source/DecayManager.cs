@@ -145,12 +145,7 @@ namespace WhitecatIndustries
         {
             VesselData.OnQuickSave();
 
-            if (!HighLogic.LoadedSceneIsFlight)
-            {
-                VesselData.VesselInformation.ClearNodes();
-                VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
-            }
-        } // 1.5.0 Quicksave or Quickload functionality
+        } // 1.5.0 Quicksave functionality
         
         public void QuickLoadUpdate(ConfigNode node)
         {
@@ -160,7 +155,7 @@ namespace WhitecatIndustries
             {
                 VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
             }
-        } // 1.5.0 Quicksave or Quickload functionality
+        } // 1.5.0 Quickload functionality
         
         public void ClearVesselOnDestroy(Vessel vessel)
         {
