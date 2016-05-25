@@ -62,9 +62,6 @@ namespace WhitecatIndustries
             if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
             {
                 CatchupResourceMassAreaDataComplete = false;
-                //GUIToggled = false;
-                //VesselDied = false;
-
                 // GameEvents -- //
 
                 GameEvents.onVesselWillDestroy.Add(ClearVesselOnDestroy); // Vessel destroy checks 1.1.0
@@ -78,8 +75,8 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Add(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Add(UpdateActiveVesselInformationPart);
 
-                    GameEvents.onGameStateSave.Add(QuickSaveUpdate); // Quicksave Checks 1.5.0
-                    GameEvents.onGameStatePostLoad.Add(QuickLoadUpdate); // Quickload Checks 1.5.0 
+                    GameEvents.onGameStateSave.Add(QuickLoadUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStatePostLoad.Add(QuickSaveUpdate); // Quickload Checks 1.5.0 
                 }
 
                 // -- GameEvents //
@@ -144,9 +141,8 @@ namespace WhitecatIndustries
         public void QuickSaveUpdate(ConfigNode node)
         {
             VesselData.OnQuickSave();
+        } // 1.5.0 QuickSave functionality // Thanks zajc3w!
 
-        } // 1.5.0 Quicksave functionality
-        
         public void QuickLoadUpdate(ConfigNode node)
         {
             VesselData.OnQuickSave();
@@ -155,8 +151,8 @@ namespace WhitecatIndustries
             {
                 VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
             }
-        } // 1.5.0 Quickload functionality
-        
+        } // 1.5.0 Quickload functionality // Thanks zajc3w!
+            
         public void ClearVesselOnDestroy(Vessel vessel)
         {
             VesselData.ClearVesselData(vessel);
@@ -398,7 +394,7 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Remove(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Remove(UpdateActiveVesselInformationPart);
 
-                    GameEvents.onGameStateSave.Remove(QuickSaveUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStateSave.Remove(QuickSaveUpdate); 
                     GameEvents.onGameStatePostLoad.Remove(QuickLoadUpdate); // Quickload Checks 1.5.0 
                 }
 
@@ -919,7 +915,7 @@ namespace WhitecatIndustries
                         }
                     }
 
-                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + (vessel.orbitDriver.referenceBody.atmosphereDepth / (double)1.5)) // 1.3.0 Increased Tolerance
+                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + (vessel.orbitDriver.referenceBody.atmosphereDepth / (double)2.0)) // 1.5.0 Increased Tolerance
                     {
                         VesselDied = true;
                     }

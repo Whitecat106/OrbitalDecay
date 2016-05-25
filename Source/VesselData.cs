@@ -132,7 +132,7 @@ namespace WhitecatIndustries
                     print("WhitecatIndustries - Orbital Decay - Vessel Information saved.");
                     File.ClearNodes();
                     VesselInformation.Save(FilePath);
-                    //VesselInformation.ClearNodes();
+                    //VesselInformation.ClearNodes(); // Thanks zajc3w!
                 }
             }
         }
@@ -146,7 +146,7 @@ namespace WhitecatIndustries
                     print("WhitecatIndustries - Orbital Decay - Vessel Information saved.");
                     File.ClearNodes();
                     VesselInformation.Save(FilePath);
-                    //VesselInformation.ClearNodes();
+                    //VesselInformation.ClearNodes(); // Thanks zajc3w!
                 }
             }
         }
