@@ -171,7 +171,8 @@ namespace WhitecatIndustries
             scrollPosition1 = GUILayout.BeginScrollView(scrollPosition1, GUILayout.Width(290), GUILayout.Height(480));
             bool Realistic = Settings.ReadRD();
             var ClockType = Settings.Read24Hr();
-            var Resource = Settings.ReadStationKeepingResource();
+            //151var Resource = Settings.ReadStationKeepingResource();
+            
 
             foreach (Vessel vessel in FlightGlobals.Vessels)
             {
@@ -179,6 +180,8 @@ namespace WhitecatIndustries
                 {
                     var StationKeeping = VesselData.FetchStationKeeping(vessel).ToString();
                     var StationKeepingFuelRemaining = VesselData.FetchFuel(vessel).ToString("F3");
+                    // var StationKeepingFuelResource = VesselData.FetchResource(vessel);
+                    var Resource = VesselData.FetchResource(vessel);
                     var ButtonText = "";
                     var HoursInDay = 6.0;
 
@@ -271,6 +274,9 @@ namespace WhitecatIndustries
                     GUILayout.Space(2);
                     GUILayout.Label("Station Keeping Fuel Remaining: " + StationKeepingFuelRemaining);
                     GUILayout.Space(2);
+                    GUILayout.Label("Station Keeping Fuel Type: " + Resource);
+                    GUILayout.Space(2); 
+
                     if (StationKeeping == "True")
                     {
                         double DecayRateSKL = 0;
@@ -333,6 +339,7 @@ namespace WhitecatIndustries
                             {
                                 if ((double.Parse(StationKeepingFuelRemaining) > 0.01)) // Good enough...
                                 {
+                                    
                                     VesselData.UpdateStationKeeping(vessel, true);
                                     ScreenMessages.PostScreenMessage("Vessel: " + vessel.vesselName + (": Station Keeping Enabled"));
                                 }
@@ -441,7 +448,7 @@ namespace WhitecatIndustries
             GUILayout.Label("____________________________________");
             GUILayout.Space(3);
 
-            scrollPosition3 = GUILayout.BeginScrollView(scrollPosition3, GUILayout.Width(290), GUILayout.Height(100));
+            /*scrollPosition3 = GUILayout.BeginScrollView(scrollPosition3, GUILayout.Width(290), GUILayout.Height(100));
             for (int i = 0; i < PartResourceLibrary.Instance.resourceDefinitions.ToList().Count; i++)
             {
                 string Resource = PartResourceLibrary.Instance.resourceDefinitions.ToList().ElementAt(i).name;
@@ -474,6 +481,7 @@ namespace WhitecatIndustries
             GUILayout.Space(2);
             GUILayout.Label("____________________________________");
             GUILayout.Space(3);
+            */
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             MultiplierValue2 = GUILayout.HorizontalSlider(MultiplierValue2, 0.5f, 50.0f);
             GUILayout.Space(2);

@@ -143,12 +143,14 @@ namespace WhitecatIndustries
 
         public void QuickSaveUpdate(ConfigNode node)
         {
+          
             VesselData.OnQuickSave();
 
         } // 1.5.0 Quicksave functionality
         
         public void QuickLoadUpdate(ConfigNode node)
         {
+            
             VesselData.OnQuickSave();
             VesselData.VesselInformation.ClearNodes();
             if (HighLogic.LoadedSceneIsFlight)
@@ -164,7 +166,9 @@ namespace WhitecatIndustries
 
         public void UpdateVesselDataResources(Vessel vessel)
         {
-            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
+            //151 VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
+            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources2(vessel));//151
+            VesselData.UpdateVesselResource(vessel, ResourceManager.GetResourceNames(vessel));//151
         }
 
         #endregion
@@ -284,7 +288,8 @@ namespace WhitecatIndustries
             {
                 if (FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
                 {
-                    if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
+                    //151 if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
+                    if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources2(FlightGlobals.ActiveVessel))//151
                     {
                         ResourceManager.CatchUp(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource());
                     }

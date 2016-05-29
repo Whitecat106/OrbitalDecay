@@ -34,13 +34,108 @@ namespace WhitecatIndustries
 {
     public class ResourceManager : MonoBehaviour
     {
-        public static void RemoveResources(Vessel vessel, string resource, double quantity)
+        public static bool RemoveResources(Vessel vessel, string resource, double quantity)
         {
-            if (vessel = FlightGlobals.ActiveVessel)
+            double PartFuel = 0.0;
+            bool AnyFuelLeft = false;
+            
+            if (vessel == FlightGlobals.ActiveVessel)
             {
+               
                 int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
-                vessel.rootPart.RequestResource(MonoPropId, quantity);
+                                
+                if (0 < (vessel.rootPart.RequestResource(MonoPropId, quantity)))
+                {
+                    AnyFuelLeft = true;
+                }
             }
+            else
+            {
+                ProtoVessel proto = vessel.protoVessel;
+
+                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                {
+                    foreach (ProtoPartResourceSnapshot protopartresourcesnapshot in protopart.resources)
+                    {
+                        if (protopartresourcesnapshot.resourceName == resource)
+                        {
+                            if (bool.Parse(protopartresourcesnapshot.resourceValues.GetValue("flowState")) == true) // Fixed resource management 1.4.0
+                            {
+                                PartFuel = double.Parse(protopartresourcesnapshot.resourceValues.GetValue("amount"));
+                                if (PartFuel > quantity)
+                                {
+                                    PartFuel -= quantity;
+                                    protopartresourcesnapshot.resourceValues.SetValue("amount", PartFuel.ToString(), 0);
+                                    AnyFuelLeft = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    protopartresourcesnapshot.resourceValues.SetValue("amount", "0", 0);
+                                    quantity -= PartFuel;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return AnyFuelLeft;
+        }
+
+        public static bool RemoveResources2(Vessel vessel, double quantity)//151 new wersion consuming multiple resources saved on vessel
+        {
+            double PartFuel = 0.0;
+            bool AnyFuelLeft = false;
+            float ratio = 0;
+            string resource = GetResourceNames(vessel);
+            int index = 0;
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                
+                foreach (string res in resource.Split(' '))
+                {
+                    ratio = GetResourceRatio(vessel, index++);
+                    int MonoPropId = PartResourceLibrary.Instance.GetDefinition(res).id;
+                    if (0 < (vessel.rootPart.RequestResource(MonoPropId, (quantity/2*ratio),ResourceFlowMode.STAGE_PRIORITY_FLOW_BALANCE)))
+                    {
+                        AnyFuelLeft = true;
+                    }
+                }
+            }
+            else
+            {
+                ProtoVessel proto = vessel.protoVessel;
+                foreach (string res in resource.Split(' '))
+                {
+                    ratio = GetResourceRatio(vessel, index++);
+                    foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                    {
+                        foreach (ProtoPartResourceSnapshot protopartresourcesnapshot in protopart.resources)
+                        {
+                            if (protopartresourcesnapshot.resourceName == res)
+                            {
+                                if (bool.Parse(protopartresourcesnapshot.resourceValues.GetValue("flowState")) == true) // Fixed resource management 1.4.0
+                                {
+                                    PartFuel = double.Parse(protopartresourcesnapshot.resourceValues.GetValue("amount"));
+                                    if (PartFuel > (quantity/2*ratio))
+                                    {
+                                        PartFuel -= (quantity / 2 * ratio);
+                                        protopartresourcesnapshot.resourceValues.SetValue("amount", PartFuel.ToString(), 0);
+                                        AnyFuelLeft = true;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        protopartresourcesnapshot.resourceValues.SetValue("amount", "0", 0);
+                                        quantity -= PartFuel;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return AnyFuelLeft;
         }
 
         public static void CatchUp(Vessel vessel, string resource)
@@ -48,9 +143,118 @@ namespace WhitecatIndustries
             int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
             if (VesselData.FetchFuel(vessel) > 0) // 1.5.0 Resource Instant drain fix
             {
-                vessel.rootPart.RequestResource(MonoPropId, (Math.Abs(GetResources(vessel, resource) - VesselData.FetchFuel(vessel))));
+                //151 vessel.rootPart.RequestResource(MonoPropId, (Math.Abs(GetResources2(vessel, resource) - VesselData.FetchFuel(vessel))));
+               // RemoveResources2(vessel, resource, (Math.Abs(GetResources2(vessel) - VesselData.FetchFuel(vessel))));//151 is it even needed now?
+
             }
         }
+
+        public static string GetResourceNames(Vessel vessel)//151 
+        {
+            string ResourceNames = "";
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
+                ResourceNames = modlist.ElementAt(0).StationKeepResources;
+            }
+            else
+            {
+                ProtoVessel proto = vessel.protoVessel;
+
+                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                {
+                    foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
+                    {
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
+                        {
+                            ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
+                            ResourceNames = node.GetValue("resources");
+                            break;
+
+                        }
+                    }
+                }
+            }
+            return ResourceNames;
+        }
+        public static float GetResourceRatio(Vessel vessel,int index)//151 
+        {
+            float ResourceRatio = 0;
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
+                ResourceRatio = modlist.ElementAt(0).stationKeepData.ratios[index];
+            }
+            else
+            {
+                ProtoVessel proto = vessel.protoVessel;
+
+                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                {
+                    foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
+                    {
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
+                        {
+                            ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
+                            int i = 0;
+                            foreach (string str in node.GetValue("ratios").Split(' '))
+                            {
+                                i++;
+                                if (i == index)
+                                {
+                                    ResourceRatio = float.Parse(str);
+                                break;
+                                }
+                            }
+                            break;
+
+                        }
+                    }
+                }
+            }
+            return ResourceRatio;
+        }
+
+        public static double GetResources2(Vessel vessel)//returns sum of used resources
+        {
+            double fuel = 0;
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
+                foreach (ModuleOrbitalDecay module in modlist)
+                {
+                    for(int i = 0; i < module.stationKeepData.amounts.Count(); i++)
+                    {
+                        fuel += module.stationKeepData.amounts[i];
+                    }
+                    break; 
+                }
+
+            }
+            else
+            {
+                ProtoVessel proto = vessel.protoVessel;
+
+                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                {
+                    foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
+                    {
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
+                        {
+                            ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
+                            foreach( string str in node.GetValue("amounts").Split(' '))
+                            {
+                                fuel += double.Parse(str);
+                            }
+                            break;
+
+                        }
+                    }
+                }
+            }
+            return fuel;
+        }
+
 
         public static double GetResources(Vessel vessel, string resource)
         {
@@ -93,10 +297,17 @@ namespace WhitecatIndustries
             return quantity;
         }
 
+        
+
+
+
+
+
         public static float GetEfficiency(string resource) // Eventually combine with engine ISP but quite nice like this!
         {
             float Efficiency = 0.0f;
-            PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(resource);
+           //151
+           /*PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(resource);
             if (Settings.ReadRD())
             {
                 Efficiency = resourceDef.density * 0.9f; // Balance here!
@@ -104,8 +315,20 @@ namespace WhitecatIndustries
             else
             {
                 Efficiency = resourceDef.density * 10.0f;
+            }*/
+            foreach (string res in resource.Split(' '))
+            {
+                PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(res);
+                if (Settings.ReadRD())
+                {
+                    Efficiency += resourceDef.density * 0.9f; // Balance here!
+                }
+                else
+                {
+                    Efficiency += resourceDef.density * 10.0f;
+                }
             }
-            return Efficiency;
+            return (Efficiency / resource.Split(' ').Count());
         }
     }
 }

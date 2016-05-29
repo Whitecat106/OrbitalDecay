@@ -38,6 +38,11 @@ namespace WhitecatIndustries
         public static ConfigNode VesselInformation = new ConfigNode();
         public static string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/PluginData/VesselData.cfg";
         public static ConfigNode File = ConfigNode.Load(FilePath);
+    /* VesselInformation is used for volatile data storacge
+     * no need to save or load
+     *  remove save/load functions after testing
+     */
+     
 
         public static double EndSceneWaitTime = 0;
         public static double StartSceneWaitTime = 0;
@@ -129,7 +134,7 @@ namespace WhitecatIndustries
             {
                 if ((Planetarium.GetUniversalTime() == HighLogic.CurrentGame.UniversalTime) || HighLogic.LoadedScene == GameScenes.FLIGHT)
                 {
-                    print("WhitecatIndustries - Orbital Decay - Vessel Information saved.");
+                    print("WhitecatIndustries - Orbital Decay - Vessel Information saved. Ondestroy");
                     File.ClearNodes();
                     VesselInformation.Save(FilePath);
                     //VesselInformation.ClearNodes();
@@ -224,10 +229,36 @@ namespace WhitecatIndustries
             {
                 string ResourceName = "";
                 ResourceName = Settings.ReadStationKeepingResource();
+               
+
                 VesselNode.SetValue("Mass", (vessel.GetTotalMass() * 1000).ToString());
                 VesselNode.SetValue("Area", (CalculateVesselArea(vessel)).ToString());
-                VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel, ResourceName)).ToString());
+                //151VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel, ResourceName)).ToString());
+                VesselNode.SetValue("Fuel", (ResourceManager.GetResources2(vessel)).ToString());//151
+                VesselNode.SetValue("Resource", ResourceManager.GetResourceNames(vessel));//151
             }
+        }
+
+        public static string FetchResource(Vessel vessel)
+        {
+            string Resource = "";
+            ConfigNode VesselNode = new ConfigNode("VESSEL");
+            bool found = false;
+
+            foreach (ConfigNode node in VesselInformation.GetNodes("VESSEL"))
+            {
+                if (node.GetValue("id") == vessel.id.ToString())
+                {
+                    VesselNode = node;
+                    found = true;
+                    break;
+                }
+            }
+            if (found == true)
+            {
+                Resource = VesselNode.GetValue("Resource");
+            }
+            return Resource;
         }
 
         public static void ClearVesselData(Vessel vessel)
@@ -284,13 +315,48 @@ namespace WhitecatIndustries
             newVessel.AddValue("EPH", vessel.GetOrbitDriver().orbit.epoch);
 
             newVessel.AddValue("StationKeeping", false.ToString());
-            newVessel.AddValue("Fuel", ResourceManager.GetResources(vessel, ResourceName));
+            //151newVessel.AddValue("Fuel", ResourceManager.GetResources(vessel, ResourceName));
+            newVessel.AddValue("Fuel", ResourceManager.GetResources2(vessel));//151
+            newVessel.AddValue("Resource", ResourceManager.GetResourceNames(vessel));//151
 
             return newVessel; 
         }
 
         public static bool FetchStationKeeping(Vessel vessel)
         {
+            /***********************using  ModuleOrbitalDecay to store StationKeeping **************************************************************/
+
+            bool StationKeeping = false;
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
+                foreach (ModuleOrbitalDecay module in modlist)
+                {
+                    StationKeeping = module.stationKeepData.IsStationKeeping;
+                    break; //all modules/parts have same value set so read first found only
+                }
+
+            }
+            else
+            {
+                ProtoVessel proto = vessel.protoVessel;
+
+                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                {
+                    foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
+                    {
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
+                        {
+                            ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
+                            StationKeeping = bool.Parse(node.GetValue("IsStationKeeping"));
+                            break;
+
+                        }
+                    }
+                }
+            }
+            /*******************************************************************************************************/
+            /*
             ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
             bool StationKeeping = false;
@@ -308,7 +374,7 @@ namespace WhitecatIndustries
                     StationKeeping = bool.Parse(Vessel.GetValue("StationKeeping"));
                     break;
                 }
-            }
+            }*/
             return StationKeeping;
         }
 
@@ -360,7 +426,39 @@ namespace WhitecatIndustries
 
         public static void UpdateStationKeeping(Vessel vessel, bool StationKeeping)
         {
-            ConfigNode Data = VesselInformation;
+         /***********************using  ModuleOrbitalDecay to store StationKeeping **************************************************************/
+
+
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
+                foreach (ModuleOrbitalDecay module in modlist)
+                {
+                    module.stationKeepData.IsStationKeeping = StationKeeping;
+                }
+
+            }
+            else
+            {
+                ProtoVessel proto = vessel.protoVessel;
+
+                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                {
+                    foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
+                    {
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
+                        {
+                            ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
+                            node.SetValue("IsStationKeeping", StationKeeping.ToString());
+                            break;
+
+                        }
+                    }
+                }
+            }
+            /*******************************************************************************************************/
+            /*
+                        ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
 
             foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
@@ -377,7 +475,7 @@ namespace WhitecatIndustries
                     break;
                 }
             }
-
+            */
         }
 
         public static void UpdateVesselSMA(Vessel vessel, double SMA)
@@ -763,6 +861,27 @@ namespace WhitecatIndustries
                 if (Vesselfound == true)
                 {
                     Vessel.SetValue("Fuel", Fuel.ToString());
+                    break;
+                }
+            }
+        }
+
+        public static void UpdateVesselResource(Vessel vessel, string Resource)
+        {
+            ConfigNode Data = VesselInformation;
+            bool Vesselfound = false;
+
+            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
+            {
+                string id = Vessel.GetValue("id");
+                if (id == vessel.id.ToString())
+                {
+                    Vesselfound = true;
+                }
+
+                if (Vesselfound == true)
+                {
+                    Vessel.SetValue("Resource", Resource);
                     break;
                 }
             }
