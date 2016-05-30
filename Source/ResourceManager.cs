@@ -190,7 +190,7 @@ namespace WhitecatIndustries
         }
 
 /* old code, replaced in  1.5.0
-        public static double GetResources5(Vessel vessel, string resource)
+        public static double GetResources(Vessel vessel, string resource)
         {
             double quantity = 0.0;
 
