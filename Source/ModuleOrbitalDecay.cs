@@ -9,15 +9,12 @@ namespace WhitecatIndustries
     public class ModuleOrbitalDecay : PartModule
     {
 
-
-        [KSPField(isPersistant = false , guiActive = true, guiActiveEditor = false, guiName = "USE")]
-     //   [UI_ChooseOption()]
-       // [UI_Label()]
+        [KSPField(isPersistant = false , guiActive = true, guiActiveEditor = false, guiName = "Use")]
         public string ODSKengine = "";
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Resources")]
         public string StationKeepResources;
-        [KSPField(isPersistant = false, guiActive = true, guiName = "available")]
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Available")]
         public string amounts;
         [KSPField(isPersistant = false, guiActive = true, guiName = "ISP" )]
         public float ISP;
@@ -36,6 +33,7 @@ namespace WhitecatIndustries
         [KSPEvent(active = true, guiActive = true, guiName = "Enable Station Keeping")]
         public void ToggleSK()
         {
+            VesselData.UpdateStationKeeping(this.vessel, !stationKeepData.IsStationKeeping);
             stationKeepData.IsStationKeeping = !stationKeepData.IsStationKeeping;
             updatedisplayedData();
            
@@ -149,7 +147,7 @@ namespace WhitecatIndustries
                 foreach (ConfigNode propellant in engineNode.GetNodes("PROPELLANT"))
                 {
                     proplist.Add(propellant.GetValue("name"));
-                    amountlist.Add(double.Parse(propellant.GetValue("available")));
+                    amountlist.Add(double.Parse(propellant.GetValue("Available")));
                     ratiolist.Add(float.Parse(propellant.GetValue("ratio")));
                 }
                 stationKeepData.ISP = float.Parse(engineNode.GetValue("ISP"));
@@ -219,7 +217,7 @@ namespace WhitecatIndustries
                             propellantNode.AddValue("name", propellant.name);
                             propellantNode.AddValue("id", propellant.id.ToString());
                             propellantNode.AddValue("ratio", propellant.ratio.ToString());
-                            propellantNode.AddValue("available", amount.ToString());
+                            propellantNode.AddValue("Available", amount.ToString());
                             engineNode.AddNode(propellantNode);
                         }
                     }
@@ -253,7 +251,7 @@ namespace WhitecatIndustries
                             propellantNode.AddValue("name", propellant.name.ToString());
                             propellantNode.AddValue("id", propellant.id.ToString());
                             propellantNode.AddValue("ratio", propellant.ratio.ToString());
-                            propellantNode.AddValue("available", amount.ToString());
+                            propellantNode.AddValue("Available", amount.ToString());
                             engineNode.AddNode(propellantNode);
                         }
                     }
