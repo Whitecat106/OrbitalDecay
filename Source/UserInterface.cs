@@ -677,7 +677,12 @@ namespace WhitecatIndustries
             {
                 DecayTimeString = "Error!";
             }
-            
+            catch (OverflowException)
+            {
+                DecayTimeString = "Error!";
+            }
+
+
             if (TimeUntilDecayInSeconds > 1000 * SecondsInYear)
             {
                 DecayTimeString = "> 1000 years.";

@@ -83,7 +83,7 @@ namespace WhitecatIndustries
 */
         public static string GetResourceNames(Vessel vessel)//151 
         {
-            string ResourceNames = "";
+            string ResourceNames = "NONE";
             if (vessel == FlightGlobals.ActiveVessel)
             {
                 List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
