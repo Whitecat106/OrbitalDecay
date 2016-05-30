@@ -775,6 +775,12 @@ namespace WhitecatIndustries
         }
 
 
+        /* simple ISP dependant effi calculation.
+         * NEEDS ballancing
+         * removing fuel based on dV would make more sense,
+         * and more thinkering to firgure it out
+         * 1.60 milestone maybe?
+         */
         public static float FetchEfficiency(Vessel vessel)
         {
             float Efficiency = 0;
