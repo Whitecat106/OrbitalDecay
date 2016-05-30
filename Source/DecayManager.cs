@@ -288,15 +288,14 @@ namespace WhitecatIndustries
             {
                 if (FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
                 {
-                    /*if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
-                    { 
-                        ResourceManager.CatchUp(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource());
-                    }*/
-                    if (VesselData.FetchFuelLost() > 0 )
+                    if (FlightGlobals.ActiveVessel.FindPartModulesImplementing<ModuleOrbitalDecay>().Any())
                     {
-                        ResourceManager.RemoveResources(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
-                        VesselData.SetFuelLost(0);
+                        if (VesselData.FetchFuelLost() > 0)
+                        {
+                            ResourceManager.RemoveResources(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
+                            VesselData.SetFuelLost(0);
 
+                        }
                     }
                         
                     VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
