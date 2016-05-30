@@ -236,7 +236,7 @@ namespace WhitecatIndustries
 
 
 
-
+/*  not used in 1.5.0
         public static float GetEfficiency(string resource) // Eventually combine with engine ISP but quite nice like this!
         {
             float Efficiency = 0.0f;
@@ -254,5 +254,6 @@ namespace WhitecatIndustries
             }
             return (Efficiency / resource.Split(' ').Count());
         }
+        */
     }
 }
