@@ -140,15 +140,13 @@ namespace WhitecatIndustries
 
         public void QuickSaveUpdate(ConfigNode node)
         {
-          
             VesselData.OnQuickSave();
         } // 1.5.0 QuickSave functionality // Thanks zajc3w!
 
         public void QuickLoadUpdate(ConfigNode node)
-        {
-            
+        { 
             VesselData.OnQuickSave();
-            VesselData.VesselInformation.ClearNodes();
+            //VesselData.VesselInformation.ClearNodes(); maybe here is offending?
             if (HighLogic.LoadedSceneIsFlight)
             {
                 VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
@@ -601,7 +599,7 @@ namespace WhitecatIndustries
 
             RealisticGravitationalPertubationDecay(vessel); // 1.5.0
             RealisticRadiationDragDecay(vessel); // 1.5.0 Happens everywhere now
-            RealisticYarkovskyEffectDecay(vessel); // 1.6.0
+            RealisticYarkovskyEffectDecay(vessel); // 1.5.0 // Partial, full for 1.6.0
 
             if (body.atmosphere)  
             {
@@ -837,7 +835,7 @@ namespace WhitecatIndustries
 
         public static void RealisticYarkovskyEffectDecay(Vessel vessel) // 1.5.0 
         {
-
+            //VesselData.UpdateVesselSMA(vessel, VesselData.FetchSMA(vessel) - YarkovskyEffect.FetchDeltaSMA(vessel));
         }
 
         #endregion
@@ -1262,7 +1260,7 @@ namespace WhitecatIndustries
 
         public static double DecayRateYarkovskyEffect(Vessel vessel)
         {
-            double DecayRate = 0.0;
+            double DecayRate = YarkovskyEffect.FetchDeltaSMA(vessel);
             return DecayRate;
         }
 

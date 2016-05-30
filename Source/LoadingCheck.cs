@@ -61,6 +61,8 @@ namespace WhitecatIndustries
     {
         public string KSPOrbitDecayLite = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/OrbitDecayLite/KSPOrbitDecayLite.dll";
         public string RealSolar = KSPUtil.ApplicationRootPath + "GameData/RealSolarSystem/Plugins/RealSolarSystem.dll";
+        public string PersistentRotation = KSPUtil.ApplicationRootPath + "GameData/PersistentRotation/Plugins/NOTREADYYET1.6.0"; // 1.6.0 Persistent Rotation
+        public static bool PersistentRotationInstalled = false;
 
         void Start()
         {
@@ -79,6 +81,11 @@ namespace WhitecatIndustries
                 Settings.Write24H(false);
                 Settings.WriteRD(false);
                 Settings.WritePlanetariumTracking(true);
+            }
+
+            if (System.IO.File.Exists(PersistentRotation))
+            {
+                PersistentRotationInstalled = true;
             }
         }
 
