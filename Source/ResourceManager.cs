@@ -62,7 +62,6 @@ namespace WhitecatIndustries
                         if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
                         {
                             ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
-                          //  quantity += double.Parse(node.GetValue("fuelLost"));
                             node.SetValue("fuelLost", (quantity + double.Parse(node.GetValue("fuelLost"))).ToString());
                             break;
                         }
@@ -167,7 +166,6 @@ namespace WhitecatIndustries
             else
             {
                 ProtoVessel proto = vessel.protoVessel;
-
                 foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
                 {
                     foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)

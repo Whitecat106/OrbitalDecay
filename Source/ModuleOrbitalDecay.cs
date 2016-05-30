@@ -441,16 +441,17 @@ namespace WhitecatIndustries
 
         public void Save(ConfigNode node)
         {
-            string temporary = "";
-            for (int i = 0; i < resources.Count(); i++)
+            string temporary;
+            temporary = resources[0];
+            for (int i = 1; i < resources.Count(); i++)
             {
-                temporary += resources[i] + ' ';
+                temporary += ' ' + resources[i];
             }
             node.AddValue("resources", temporary);
-            temporary = "";
-            for (int i = 0; i < amounts.Count(); i++)
+            temporary = amounts[0].ToString();
+            for (int i = 1; i < amounts.Count(); i++)
             {
-                temporary += amounts[i].ToString() + ' ';
+                temporary += ' ' + amounts[i].ToString();
             }
             node.AddValue("amounts", temporary);
             temporary = "";
@@ -469,7 +470,7 @@ namespace WhitecatIndustries
             node.AddValue("IsStationKeeping", IsStationKeeping);
         }
 
-       
+
     }
 
 
