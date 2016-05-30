@@ -11,7 +11,6 @@ namespace WhitecatIndustries
 
         [KSPField(isPersistant = false , guiActive = true, guiActiveEditor = false, guiName = "Use")]
         public string ODSKengine = "";
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Resources")]
         public string StationKeepResources;
         [KSPField(isPersistant = false, guiActive = true, guiName = "Available")]
@@ -178,10 +177,6 @@ namespace WhitecatIndustries
             else ODSKengine = EngineList[EngineList.Count()-1];
 
         }
-
-
-
-
 
         public void fetchEngineData()
         {

@@ -11,7 +11,7 @@ namespace WhitecatIndustries
     {
         public static double FetchDeltaSMA(Vessel vessel)
         {
-            if (TimeWarp.CurrentRate > 100)
+            if (TimeWarp.CurrentRate > 1.0)
             {
                 return SeasonalSMAChange(vessel);
             }
@@ -72,7 +72,7 @@ namespace WhitecatIndustries
 
                 else
                 {
-                    Quaternion VesselRotation = vessel.ReferenceTransform.rotation; // Issues here work out a background rotational calculation?
+                    Quaternion VesselRotation = vessel.srfRelRotation; // Issues here work out a background rotational calculation?
                     Vector3 TemporaryAxis;
                     VesselRotation.ToAngleAxis(out ObliquityOfSpinAxis, out TemporaryAxis);
                     Vector3 AngularSpeed = (TemporaryAxis * ObliquityOfSpinAxis); // Rotation Per Second?

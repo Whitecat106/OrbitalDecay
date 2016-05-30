@@ -282,7 +282,7 @@ namespace WhitecatIndustries
             {
                 if (FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
                 {
-<<<<<<< HEAD
+
                     /*if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
                     { 
                         ResourceManager.CatchUp(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource());
@@ -293,7 +293,7 @@ namespace WhitecatIndustries
                         VesselData.SetFuelLost(0);
 
                     }
-=======
+
                     if (FlightGlobals.ActiveVessel.FindPartModulesImplementing<ModuleOrbitalDecay>().Any())
                     {
                         if (VesselData.FetchFuelLost() > 0)
@@ -303,8 +303,7 @@ namespace WhitecatIndustries
 
                         }
                     }
->>>>>>> be88ac0dc0a2f6cbc8f07335f1a1cfdb383e4836
-                        
+
                     VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
                     print("WhitecatIndustries - Orbital Decay - Updating Fuel Levels for: " + FlightGlobals.ActiveVessel.GetName());
                     CatchupResourceMassAreaDataComplete = true;
@@ -848,7 +847,7 @@ namespace WhitecatIndustries
 
         public static void RealisticYarkovskyEffectDecay(Vessel vessel) // 1.5.0 
         {
-            //VesselData.UpdateVesselSMA(vessel, VesselData.FetchSMA(vessel) - YarkovskyEffect.FetchDeltaSMA(vessel));
+            VesselData.UpdateVesselSMA(vessel, VesselData.FetchSMA(vessel) - (-1.0 * YarkovskyEffect.FetchDeltaSMA(vessel)));
         }
 
         #endregion

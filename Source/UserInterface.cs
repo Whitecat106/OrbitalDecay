@@ -1,10 +1,4 @@
-﻿// 1.2.0 Issues:
-
-// Stock decay - Eccentricity problem -- Remove for now? -- No lets work this one out! -- Or maybe not... 1.3.0
-// add RSS realistic active decay -- 1.3.0
-// Multiple resources active at the same time? -- 1.3.0
-
-/*
+﻿/*
  * Whitecat Industries Orbital Decay for Kerbal Space Program. 
  * 
  * Written by Whitecat106 (Marcus Hehir).
@@ -98,6 +92,7 @@ namespace WhitecatIndustries
             ApplicationLauncher.Instance.RemoveModApplication(ToolbarButton);
             ToolbarButton = null;
             Visible = false;
+            SubVisible = false;
         }
 
         private void GuiOn()
@@ -108,6 +103,7 @@ namespace WhitecatIndustries
         private void GuiOff()
         {
             Visible = false;
+            SubVisible = false;
         }
 
         public void OnGUI()
