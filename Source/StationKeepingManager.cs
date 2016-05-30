@@ -38,43 +38,55 @@ namespace WhitecatIndustries
       
         public static bool EngineCheck(Vessel vessel) // 1.3.0
         {
+
             bool HasEngine = false;
 
-                if (vessel != FlightGlobals.ActiveVessel)
-                {
-                    ProtoVessel protovessel = vessel.protoVessel;
-                    List<ProtoPartSnapshot> PPSL = protovessel.protoPartSnapshots;
+            if (vessel != FlightGlobals.ActiveVessel)
+            {
+                ProtoVessel protovessel = vessel.protoVessel;
+                List<ProtoPartSnapshot> PPSL = protovessel.protoPartSnapshots;
 
-                    foreach (ProtoPartSnapshot PPS in PPSL)
+
+                foreach (ProtoPartSnapshot PPS in PPSL)
+                {
+                    List<ProtoPartModuleSnapshot> PPMSL = PPS.modules;
+                    foreach (ProtoPartModuleSnapshot PPMS in PPMSL)
                     {
-                        List<ProtoPartModuleSnapshot> PPMSL = PPS.modules;
-                        foreach (ProtoPartModuleSnapshot PPMS in PPMSL)
+                        if (PPMS.moduleName.Contains("ModuleEngines")) // 1.5.0 Part Module Fixes
                         {
-                            if (PPMS.moduleName.Contains("ModuleEngines") || PPMS.moduleName.Contains("ModuleRCS")) // 1.5.0 Part Module Fixes
+                            //if (bool.Parse(PPMS.moduleValues.GetValue("EngineIgnited"))) - check if engine is ignited
                             {
                                 HasEngine = true;
                                 break;
                             }
                         }
-
-                        if (HasEngine == true)
+                        else if(PPMS.moduleName.Contains("ModuleRCS"))
                         {
-                            break;
+                            //if (bool.Parse(PPMS.moduleValues.GetValue("rcsEnabled"))) do we want it?
+                            {
+                                HasEngine = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                else if (vessel == FlightGlobals.ActiveVessel)
-                {
-                    if (vessel.FindPartModulesImplementing<ModuleEngines>().Count > 0 || vessel.FindPartModulesImplementing<ModuleRCS>().Count > 0)
+                    if (HasEngine == true)
                     {
-                        HasEngine = true;
-                    }
-                    else
-                    {
-                        HasEngine = false;
+                        break;
                     }
                 }
+            }
+            else if (vessel == FlightGlobals.ActiveVessel)
+            {
+                if (vessel.FindPartModulesImplementing<ModuleEngines>().Count > 0 || vessel.FindPartModulesImplementing<ModuleRCS>().Count > 0)
+                {
+                    HasEngine = true;
+                }
+                else
+                {
+                    HasEngine = false;
+                }
+            }
 
             return HasEngine;
         }
@@ -82,12 +94,10 @@ namespace WhitecatIndustries
         public static void FuelManager(Vessel vessel)
         {
             string ResourceName = "";
-            
-            ResourceName = Settings.ReadStationKeepingResource();
+            ResourceName = VesselData.FetchResource(vessel);
             double CurrentFuel = 0;
             CurrentFuel = VesselData.FetchFuel(vessel);
-
-            double ResourceEfficiency = ResourceManager.GetEfficiency(ResourceName);
+            double ResourceEfficiency = ResourceManager.GetEfficiency(ResourceName);//151 TODO change effi calculation based on vessel engine ISP stored in stationKeepData.ISP
             double LostFuel = 0.0;
 
             LostFuel = Math.Abs((DecayManager.DecayRateAtmosphericDrag(vessel) + DecayManager.DecayRateRadiationPressure(vessel) + DecayManager.DecayRateYarkovskyEffect(vessel))) * Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier
@@ -102,7 +112,19 @@ namespace WhitecatIndustries
 
             else if (EngineCheck(vessel) == true)
             {
-
+                
+                if ( FuelNew <= 0 )
+                {
+                    ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has run out of " + ResourceName + ", Station Keeping disabled.");
+                    VesselData.UpdateStationKeeping(vessel, false);
+                    VesselData.UpdateVesselFuel(vessel, 0);
+                }
+                else
+                {
+                    VesselData.UpdateVesselFuel(vessel, FuelNew);
+                    ResourceManager.RemoveResources(vessel, LostFuel);
+                }
+                /*
                 if (CurrentFuel < LostFuel)
                 {
                     ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has run out of " + ResourceName + ", Station Keeping disabled.");
@@ -117,7 +139,9 @@ namespace WhitecatIndustries
                         ResourceManager.RemoveResources(vessel, ResourceName, (LostFuel)); // Balancing required here
                     }
                     VesselData.UpdateVesselFuel(vessel, FuelNew);
+                    
                 }
+                */
             }
         }
     }

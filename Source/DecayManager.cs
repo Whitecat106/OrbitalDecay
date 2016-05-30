@@ -140,11 +140,13 @@ namespace WhitecatIndustries
 
         public void QuickSaveUpdate(ConfigNode node)
         {
+          
             VesselData.OnQuickSave();
         } // 1.5.0 QuickSave functionality // Thanks zajc3w!
 
         public void QuickLoadUpdate(ConfigNode node)
         {
+            
             VesselData.OnQuickSave();
             VesselData.VesselInformation.ClearNodes();
             if (HighLogic.LoadedSceneIsFlight)
@@ -160,7 +162,9 @@ namespace WhitecatIndustries
 
         public void UpdateVesselDataResources(Vessel vessel)
         {
-            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
+            //151 VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
+            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources2(vessel));//151
+            VesselData.UpdateVesselResource(vessel, ResourceManager.GetResourceNames(vessel));//151
         }
 
         #endregion
@@ -280,10 +284,17 @@ namespace WhitecatIndustries
             {
                 if (FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
                 {
-                    if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
-                    {
+                    /*if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
+                    { 
                         ResourceManager.CatchUp(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource());
+                    }*/
+                    if (VesselData.FetchFuelLost() > 0 )
+                    {
+                        ResourceManager.RemoveResources(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
+                        VesselData.SetFuelLost(0);
+
                     }
+                        
                     VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
                     print("WhitecatIndustries - Orbital Decay - Updating Fuel Levels for: " + FlightGlobals.ActiveVessel.GetName());
                     CatchupResourceMassAreaDataComplete = true;
