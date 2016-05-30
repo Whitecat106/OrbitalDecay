@@ -521,17 +521,17 @@ namespace WhitecatIndustries
             
                 GUILayout.Label("Vessel: " + vessel.GetName());
                 GUILayout.Space(4);
-                GUILayout.Label("Current Atmospheric Drag Decay Rate (Delta SMA): " + FormatDecayRateToString(ADDR));
+                GUILayout.Label("Atmospheric Drag Decay Rate (Delta SMA): " + FormatDecayRateToString(ADDR));
                 GUILayout.Space(2);
-                GUILayout.Label("Current Radiation Pressure Decay Rate (Delta SMA): " + FormatDecayRateToString(PRDR));
+                GUILayout.Label("Radiation Pressure Decay Rate (Delta SMA): " + FormatDecayRateToString(PRDR));
                 GUILayout.Space(2);
-                GUILayout.Label("Current Gravitational Effect Decay Rate (Delta SMA): " + FormatDecayRateToString(GPDR));
+                GUILayout.Label("Gravitational Effect Decay Rate (Delta SMA): " + FormatDecayRateToString(GPDR));
                 GUILayout.Space(2);
-                GUILayout.Label("Current Gravitational Effect Decay Rate (Delta INC): " + FormatDecayRateDegreesToString(GPIDR));
+                GUILayout.Label("Gravitational Effect Decay Rate (Delta INC): " + FormatDecayRateDegreesToString(GPIDR));
                 GUILayout.Space(2);
-                GUILayout.Label("Current Gravitational Effect Decay Rate (Delta LAN): " + FormatDecayRateDegreesToString(GPLANDR));
+                GUILayout.Label("Gravitational Effect Decay Rate (Delta LAN): " + FormatDecayRateDegreesToString(GPLANDR));
                 GUILayout.Space(2);
-                GUILayout.Label("Current Yarkovsky Effect Decay Rate (Delta SMA): " + FormatDecayRateSmallToString(YEDR));
+                GUILayout.Label("Yarkovsky Effect Decay Rate (Delta SMA): " + FormatDecayRateSmallToString(YEDR));
                 GUILayout.Space(2);
                 GUILayout.Label("Note: Prediction estimates accurate to +/- 10% per day.");
             }
