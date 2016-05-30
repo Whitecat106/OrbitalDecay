@@ -94,10 +94,12 @@ namespace WhitecatIndustries
         public static void FuelManager(Vessel vessel)
         {
             string ResourceName = "";
-            ResourceName = VesselData.FetchResource(vessel);
+            //ResourceName = VesselData.FetchResource(vessel);
+            ResourceName = ResourceManager.GetResourceNames(vessel);
             double CurrentFuel = 0;
-            CurrentFuel = VesselData.FetchFuel(vessel);
-            double ResourceEfficiency = ResourceManager.GetEfficiency(ResourceName);//151 TODO change effi calculation based on vessel engine ISP stored in stationKeepData.ISP
+        //    CurrentFuel = VesselData.FetchFuel(vessel);
+            CurrentFuel = ResourceManager.GetResources(vessel);
+            double ResourceEfficiency = VesselData.FetchEfficiency(vessel);//ResourceManager.GetEfficiency(ResourceName); effi calculation based on vessel engine ISP stored in stationKeepData.ISP
             double LostFuel = 0.0;
 
             LostFuel = Math.Abs((DecayManager.DecayRateAtmosphericDrag(vessel) + DecayManager.DecayRateRadiationPressure(vessel) + DecayManager.DecayRateYarkovskyEffect(vessel))) * Settings.ReadResourceRateDifficulty() * ResourceEfficiency; // * Fuel Multiplier

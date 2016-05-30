@@ -136,8 +136,8 @@ namespace WhitecatIndustries
                 {
                     print("WhitecatIndustries - Orbital Decay - Vessel Information saved. Ondestroy");
                     File.ClearNodes();
-                   // VesselInformation.Save(FilePath);
-                    //VesselInformation.ClearNodes();
+                    VesselInformation.Save(FilePath);
+                   // VesselInformation.ClearNodes();
                 }
             }
         }
@@ -150,7 +150,7 @@ namespace WhitecatIndustries
                 {
                     print("WhitecatIndustries - Orbital Decay - Vessel Information saved.");
                     File.ClearNodes();
-                    //VesselInformation.Save(FilePath);
+                    VesselInformation.Save(FilePath);
                     //VesselInformation.ClearNodes();
                 }
             }
@@ -227,18 +227,17 @@ namespace WhitecatIndustries
 
             if (found == true)
             {
-                string ResourceName = "";
-                ResourceName = Settings.ReadStationKeepingResource();
-
+               // string ResourceName = "";
+               // ResourceName = Settings.ReadStationKeepingResource();
 
                 VesselNode.SetValue("Mass", (vessel.GetTotalMass() * 1000).ToString());
                 VesselNode.SetValue("Area", (CalculateVesselArea(vessel)).ToString());
                 //151VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel, ResourceName)).ToString());
-                VesselNode.SetValue("Fuel", (ResourceManager.GetResources2(vessel)).ToString());//151
-                VesselNode.SetValue("Resource", ResourceManager.GetResourceNames(vessel));//151
+            //    VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel)).ToString());//151
+             //   VesselNode.SetValue("Resource", ResourceManager.GetResourceNames(vessel));//151
             }
         }
-
+/* not used in 1.5.0
         public static string FetchResource(Vessel vessel)
         {
             string Resource = "";
@@ -260,6 +259,7 @@ namespace WhitecatIndustries
             }
             return Resource;
         }
+        */
 
         public static void ClearVesselData(Vessel vessel)
         {
@@ -286,8 +286,8 @@ namespace WhitecatIndustries
         {
             ConfigNode newVessel = new ConfigNode("VESSEL");
 
-            string ResourceName = "";
-            ResourceName = Settings.ReadStationKeepingResource();
+           // string ResourceName = "";
+           // ResourceName = Settings.ReadStationKeepingResource();
 
             newVessel.AddValue("name", vessel.GetName());
             newVessel.AddValue("id", vessel.id.ToString());
@@ -314,10 +314,10 @@ namespace WhitecatIndustries
             newVessel.AddValue("MNA", vessel.GetOrbitDriver().orbit.meanAnomalyAtEpoch);
             newVessel.AddValue("EPH", vessel.GetOrbitDriver().orbit.epoch);
 
-            newVessel.AddValue("StationKeeping", false.ToString());
+           // newVessel.AddValue("StationKeeping", false.ToString());
             //151newVessel.AddValue("Fuel", ResourceManager.GetResources(vessel, ResourceName));
-            newVessel.AddValue("Fuel", ResourceManager.GetResources2(vessel));//151
-            newVessel.AddValue("Resource", ResourceManager.GetResourceNames(vessel));//151
+        //    newVessel.AddValue("Fuel", ResourceManager.GetResources(vessel));//151
+        //    newVessel.AddValue("Resource", ResourceManager.GetResourceNames(vessel));//151
 
             return newVessel;
         }
@@ -774,9 +774,47 @@ namespace WhitecatIndustries
             return EPH;
         }
 
+
+        public static float FetchEfficiency(Vessel vessel)
+        {
+            float Efficiency = 0;
+            if (vessel == FlightGlobals.ActiveVessel)
+            {
+                List<ModuleOrbitalDecay> modlist  = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
+                Efficiency = modlist.ElementAt(0).stationKeepData.ISP;
+               
+            }
+            else
+            {
+                ProtoVessel proto = vessel.protoVessel;
+
+                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                {
+                    foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
+                    {
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
+                        {
+                            ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
+                            Efficiency = float.Parse(node.GetValue("ISP"));
+                            break;
+                        }
+                    }
+                }
+            }
+            if (Settings.ReadRD())
+            {
+                Efficiency *= 0.5f; // Balance here!
+            }
+            
+
+            return 1/Efficiency;
+        }
+
+/* unused in 1.5.0
         public static double FetchFuel(Vessel vessel)
         {
-            ConfigNode Data = VesselInformation;
+                                                                           
+           ConfigNode Data = VesselInformation;
             bool Vesselfound = false;
             double Fuel = 0.0;
 
@@ -794,8 +832,10 @@ namespace WhitecatIndustries
                     break;
                 }
             }
+
             return Fuel;
         }
+        */
 
         public static void UpdateBody(Vessel vessel, CelestialBody body)
         {
@@ -838,7 +878,7 @@ namespace WhitecatIndustries
                 }
             }
         }
-
+/* unused in 1.5.0
         public static void UpdateVesselResource(Vessel vessel, string Resource)
         {
             ConfigNode Data = VesselInformation;
@@ -859,6 +899,7 @@ namespace WhitecatIndustries
                 }
             }
         }
+        */
 
         public static double CalculateVesselArea(Vessel vessel)
         {

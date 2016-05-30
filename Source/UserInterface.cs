@@ -179,9 +179,10 @@ namespace WhitecatIndustries
                 if (vessel.situation == Vessel.Situations.ORBITING && vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown && vessel.vesselType != VesselType.Debris)
                 {
                     var StationKeeping = VesselData.FetchStationKeeping(vessel).ToString();
-                    var StationKeepingFuelRemaining = VesselData.FetchFuel(vessel).ToString("F3");
-                    // var StationKeepingFuelResource = VesselData.FetchResource(vessel);
-                    var Resource = VesselData.FetchResource(vessel);
+                 //   var StationKeepingFuelRemaining = VesselData.FetchFuel(vessel).ToString("F3");
+                    var StationKeepingFuelRemaining = ResourceManager.GetResources(vessel).ToString("F3");
+                //    var Resource = VesselData.FetchResource(vessel);//151
+                    var Resource = ResourceManager.GetResourceNames(vessel);
                     var ButtonText = "";
                     var HoursInDay = 6.0;
 
@@ -274,8 +275,8 @@ namespace WhitecatIndustries
                     GUILayout.Space(2);
                     GUILayout.Label("Station Keeping Fuel Remaining: " + StationKeepingFuelRemaining);
                     GUILayout.Space(2);
-                    GUILayout.Label("Station Keeping Fuel Type: " + Resource);
-                    GUILayout.Space(2); 
+                    GUILayout.Label("Using Fuel Type: " + Resource);//151
+                    GUILayout.Space(2); //151
 
                     if (StationKeeping == "True")
                     {
@@ -284,7 +285,7 @@ namespace WhitecatIndustries
                         DecayRateSKL = DecayManager.DecayRateAtmosphericDrag(vessel) + DecayManager.DecayRateRadiationPressure(vessel) + DecayManager.DecayRateYarkovskyEffect(vessel);
 
 
-                        double StationKeepingLifetime = (double.Parse(StationKeepingFuelRemaining) / ((DecayRateSKL / TimeWarp.CurrentRate) * ResourceManager.GetEfficiency(Resource) * Settings.ReadResourceRateDifficulty())) / (60 * 60 * HoursInDay);
+                        double StationKeepingLifetime = (double.Parse(StationKeepingFuelRemaining) / ((DecayRateSKL / TimeWarp.CurrentRate) * VesselData.FetchEfficiency(vessel) /*ResourceManager.GetEfficiency(Resource)*/ * Settings.ReadResourceRateDifficulty())) / (60 * 60 * HoursInDay);
 
                         if (StationKeepingLifetime < -5) // SRP Fixes
                         {

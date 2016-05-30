@@ -70,7 +70,7 @@ namespace WhitecatIndustries
                 }
             }
         }
-
+/* unused in 1.50
         public static void CatchUp(Vessel vessel, string resource)
         {
             int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
@@ -81,7 +81,7 @@ namespace WhitecatIndustries
 
             }
         }
-
+*/
         public static string GetResourceNames(Vessel vessel)//151 
         {
             string ResourceNames = "";
@@ -148,7 +148,7 @@ namespace WhitecatIndustries
             return ResourceRatio;
         }
 
-        public static double GetResources2(Vessel vessel)//returns sum of used resources
+        public static double GetResources(Vessel vessel)//returns sum of used resources
         {
             double fuel = 0;
             if (vessel == FlightGlobals.ActiveVessel)
@@ -189,8 +189,8 @@ namespace WhitecatIndustries
             return fuel;
         }
 
-
-        public static double GetResources(Vessel vessel, string resource)
+/* old code, replaced in  1.5.0
+        public static double GetResources5(Vessel vessel, string resource)
         {
             double quantity = 0.0;
 
@@ -231,7 +231,7 @@ namespace WhitecatIndustries
             return quantity;
         }
 
-        
+   */     
 
 
 
@@ -240,16 +240,6 @@ namespace WhitecatIndustries
         public static float GetEfficiency(string resource) // Eventually combine with engine ISP but quite nice like this!
         {
             float Efficiency = 0.0f;
-           //151
-           /*PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(resource);
-            if (Settings.ReadRD())
-            {
-                Efficiency = resourceDef.density * 0.9f; // Balance here!
-            }
-            else
-            {
-                Efficiency = resourceDef.density * 10.0f;
-            }*/
             foreach (string res in resource.Split(' '))
             {
                 PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(res);
