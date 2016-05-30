@@ -113,7 +113,7 @@ namespace WhitecatIndustries
             else if (EngineCheck(vessel) == true)
             {
                 
-                if ( !ResourceManager.RemoveResources2(vessel,LostFuel) || FuelNew <= 0 )
+                if ( FuelNew <= 0 )
                 {
                     ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has run out of " + ResourceName + ", Station Keeping disabled.");
                     VesselData.UpdateStationKeeping(vessel, false);
@@ -122,6 +122,7 @@ namespace WhitecatIndustries
                 else
                 {
                     VesselData.UpdateVesselFuel(vessel, FuelNew);
+                    ResourceManager.RemoveResources(vessel, LostFuel);
                 }
                 /*
                 if (CurrentFuel < LostFuel)

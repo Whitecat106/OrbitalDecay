@@ -294,7 +294,7 @@ namespace WhitecatIndustries
                     }*/
                     if (VesselData.FetchFuelLost() > 0 )
                     {
-                        ResourceManager.RemoveResources2(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
+                        ResourceManager.RemoveResources(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
                         VesselData.SetFuelLost(0);
 
                     }

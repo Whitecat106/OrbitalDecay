@@ -34,58 +34,10 @@ namespace WhitecatIndustries
 {
     public class ResourceManager : MonoBehaviour
     {
-        public static bool RemoveResources(Vessel vessel, string resource, double quantity)
-        {
-            double PartFuel = 0.0;
-            bool AnyFuelLeft = false;
-            
-            if (vessel == FlightGlobals.ActiveVessel)
-            {
-               
-                int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
-                                
-                if (0 < (vessel.rootPart.RequestResource(MonoPropId, quantity)))
-                {
-                    AnyFuelLeft = true;
-                }
-            }
-            else
-            {
-                ProtoVessel proto = vessel.protoVessel;
-
-                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
-                {
-                    foreach (ProtoPartResourceSnapshot protopartresourcesnapshot in protopart.resources)
-                    {
-                        if (protopartresourcesnapshot.resourceName == resource)
-                        {
-                            if (bool.Parse(protopartresourcesnapshot.resourceValues.GetValue("flowState")) == true) // Fixed resource management 1.4.0
-                            {
-                                PartFuel = double.Parse(protopartresourcesnapshot.resourceValues.GetValue("amount"));
-                                if (PartFuel > quantity)
-                                {
-                                    PartFuel -= quantity;
-                                    protopartresourcesnapshot.resourceValues.SetValue("amount", PartFuel.ToString(), 0);
-                                    AnyFuelLeft = true;
-                                    break;
-                                }
-                                else
-                                {
-                                    protopartresourcesnapshot.resourceValues.SetValue("amount", "0", 0);
-                                    quantity -= PartFuel;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            return AnyFuelLeft;
-        }
-
-        public static bool RemoveResources2(Vessel vessel, double quantity)//151 new wersion consuming multiple resources saved on vessel
+        
+        public static void RemoveResources(Vessel vessel, double quantity)//151 new wersion consuming multiple resources saved on vessel
         {
             
-            bool AnyFuelLeft = false;
             float ratio = 0;
             string resource = GetResourceNames(vessel);
             int index = 0;
@@ -96,10 +48,7 @@ namespace WhitecatIndustries
                 {
                     ratio = GetResourceRatio(vessel, index++);
                     int MonoPropId = PartResourceLibrary.Instance.GetDefinition(res).id;
-                    if (0 < (vessel.rootPart.RequestResource(MonoPropId, (quantity/2*ratio),ResourceFlowMode.STAGE_PRIORITY_FLOW_BALANCE)))
-                    {
-                        AnyFuelLeft = true;
-                    }
+                    vessel.rootPart.RequestResource(MonoPropId, (quantity/2*ratio),ResourceFlowMode.STAGE_PRIORITY_FLOW);
                 }
             }
             else
@@ -115,13 +64,11 @@ namespace WhitecatIndustries
                             ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
                           //  quantity += double.Parse(node.GetValue("fuelLost"));
                             node.SetValue("fuelLost", (quantity + double.Parse(node.GetValue("fuelLost"))).ToString());
-                            AnyFuelLeft = true;
                             break;
                         }
                     }
                 }
             }
-            return AnyFuelLeft;
         }
 
         public static void CatchUp(Vessel vessel, string resource)
