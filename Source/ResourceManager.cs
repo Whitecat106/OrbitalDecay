@@ -231,12 +231,6 @@ namespace WhitecatIndustries
             return quantity;
         }
 
-        
-
-
-
-
-
         public static float GetEfficiency(string resource) // Eventually combine with engine ISP but quite nice like this!
         {
             float Efficiency = 0.0f;
