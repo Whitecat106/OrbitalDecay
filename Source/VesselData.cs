@@ -38,11 +38,11 @@ namespace WhitecatIndustries
         public static ConfigNode VesselInformation = new ConfigNode();
         public static string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/PluginData/VesselData.cfg";
         public static ConfigNode File = ConfigNode.Load(FilePath);
-    /* VesselInformation is used for volatile data storacge
-     * no need to save or load
-     *  remove save/load functions after testing
-     */
-     
+        /* VesselInformation is used for volatile data storacge
+         * no need to save or load
+         *  remove save/load functions after testing
+         */
+
 
         public static double EndSceneWaitTime = 0;
         public static double StartSceneWaitTime = 0;
@@ -130,13 +130,13 @@ namespace WhitecatIndustries
 
         public void OnDestroy()
         {
-            if (DecayManager.CheckSceneStateMain(HighLogic.LoadedScene))         
+            if (DecayManager.CheckSceneStateMain(HighLogic.LoadedScene))
             {
                 if ((Planetarium.GetUniversalTime() == HighLogic.CurrentGame.UniversalTime) || HighLogic.LoadedScene == GameScenes.FLIGHT)
                 {
                     print("WhitecatIndustries - Orbital Decay - Vessel Information saved. Ondestroy");
                     File.ClearNodes();
-                    VesselInformation.Save(FilePath);
+                   // VesselInformation.Save(FilePath);
                     //VesselInformation.ClearNodes();
                 }
             }
@@ -150,7 +150,7 @@ namespace WhitecatIndustries
                 {
                     print("WhitecatIndustries - Orbital Decay - Vessel Information saved.");
                     File.ClearNodes();
-                    VesselInformation.Save(FilePath);
+                    //VesselInformation.Save(FilePath);
                     //VesselInformation.ClearNodes();
                 }
             }
@@ -207,13 +207,13 @@ namespace WhitecatIndustries
                     }
                 }
             }
-            
+
         }
 
         public static void UpdateActiveVesselData(Vessel vessel)
         {
             ConfigNode VesselNode = new ConfigNode("VESSEL");
-            bool found = false; 
+            bool found = false;
 
             foreach (ConfigNode node in VesselInformation.GetNodes("VESSEL"))
             {
@@ -229,7 +229,7 @@ namespace WhitecatIndustries
             {
                 string ResourceName = "";
                 ResourceName = Settings.ReadStationKeepingResource();
-               
+
 
                 VesselNode.SetValue("Mass", (vessel.GetTotalMass() * 1000).ToString());
                 VesselNode.SetValue("Area", (CalculateVesselArea(vessel)).ToString());
@@ -264,9 +264,9 @@ namespace WhitecatIndustries
         public static void ClearVesselData(Vessel vessel)
         {
             ConfigNode VesselNode = new ConfigNode("VESSEL");
-            bool found = false; 
+            bool found = false;
 
-            foreach(ConfigNode node in VesselInformation.GetNodes("VESSEL"))
+            foreach (ConfigNode node in VesselInformation.GetNodes("VESSEL"))
             {
                 if (node.GetValue("id") == vessel.id.ToString())
                 {
@@ -292,7 +292,7 @@ namespace WhitecatIndustries
             newVessel.AddValue("name", vessel.GetName());
             newVessel.AddValue("id", vessel.id.ToString());
             newVessel.AddValue("persistence", HighLogic.SaveFolder.ToString());
-            string CatalogueCode = vessel.vesselType.ToString().Substring(0,1) + vessel.GetInstanceID().ToString();
+            string CatalogueCode = vessel.vesselType.ToString().Substring(0, 1) + vessel.GetInstanceID().ToString();
             newVessel.AddValue("code", CatalogueCode);
             if (vessel == FlightGlobals.ActiveVessel)
             {
@@ -319,13 +319,11 @@ namespace WhitecatIndustries
             newVessel.AddValue("Fuel", ResourceManager.GetResources2(vessel));//151
             newVessel.AddValue("Resource", ResourceManager.GetResourceNames(vessel));//151
 
-            return newVessel; 
+            return newVessel;
         }
 
         public static bool FetchStationKeeping(Vessel vessel)
         {
-            /***********************using  ModuleOrbitalDecay to store StationKeeping **************************************************************/
-
             bool StationKeeping = false;
             if (vessel == FlightGlobals.ActiveVessel)
             {
@@ -333,7 +331,7 @@ namespace WhitecatIndustries
                 foreach (ModuleOrbitalDecay module in modlist)
                 {
                     StationKeeping = module.stationKeepData.IsStationKeeping;
-                    break; //all modules/parts have same value set so read first found only
+                    break;
                 }
 
             }
@@ -350,33 +348,34 @@ namespace WhitecatIndustries
                             ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
                             StationKeeping = bool.Parse(node.GetValue("IsStationKeeping"));
                             break;
-
                         }
                     }
                 }
             }
-            /*******************************************************************************************************/
-            /*
-            ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-            bool StationKeeping = false;
 
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    StationKeeping = bool.Parse(Vessel.GetValue("StationKeeping"));
-                    break;
-                }
-            }*/
             return StationKeeping;
         }
+
+
+        public static double FetchFuelLost()
+        {
+            
+            List<ModuleOrbitalDecay> modlist = FlightGlobals.ActiveVessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
+            double FuelLost = modlist.ElementAt(0).stationKeepData.fuelLost;
+            return FuelLost;
+        }
+
+
+        public static void SetFuelLost(double FuelLost)
+        {
+
+            List<ModuleOrbitalDecay> modlist = FlightGlobals.ActiveVessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
+            foreach(ModuleOrbitalDecay module in modlist )
+            {
+                module.stationKeepData.fuelLost = FuelLost;
+            }
+        }
+
 
         public static double FetchMass(Vessel vessel)
         {
@@ -426,9 +425,6 @@ namespace WhitecatIndustries
 
         public static void UpdateStationKeeping(Vessel vessel, bool StationKeeping)
         {
-         /***********************using  ModuleOrbitalDecay to store StationKeeping **************************************************************/
-
-
             if (vessel == FlightGlobals.ActiveVessel)
             {
                 List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
@@ -436,12 +432,10 @@ namespace WhitecatIndustries
                 {
                     module.stationKeepData.IsStationKeeping = StationKeeping;
                 }
-
             }
             else
             {
                 ProtoVessel proto = vessel.protoVessel;
-
                 foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
                 {
                     foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
@@ -451,31 +445,10 @@ namespace WhitecatIndustries
                             ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
                             node.SetValue("IsStationKeeping", StationKeeping.ToString());
                             break;
-
                         }
                     }
                 }
             }
-            /*******************************************************************************************************/
-            /*
-                        ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    Vessel.SetValue("StationKeeping", StationKeeping.ToString());
-                    break;
-                }
-            }
-            */
         }
 
         public static void UpdateVesselSMA(Vessel vessel, double SMA)

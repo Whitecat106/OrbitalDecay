@@ -288,11 +288,17 @@ namespace WhitecatIndustries
             {
                 if (FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
                 {
-                    //151 if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
-                    if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources2(FlightGlobals.ActiveVessel))//151
-                    {
+                    /*if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
+                    { 
                         ResourceManager.CatchUp(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource());
+                    }*/
+                    if (VesselData.FetchFuelLost() > 0 )
+                    {
+                        ResourceManager.RemoveResources2(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
+                        VesselData.SetFuelLost(0);
+
                     }
+                        
                     VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
                     print("WhitecatIndustries - Orbital Decay - Updating Fuel Levels for: " + FlightGlobals.ActiveVessel.GetName());
                     CatchupResourceMassAreaDataComplete = true;

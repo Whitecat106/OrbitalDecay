@@ -84,7 +84,7 @@ namespace WhitecatIndustries
 
         public static bool RemoveResources2(Vessel vessel, double quantity)//151 new wersion consuming multiple resources saved on vessel
         {
-            double PartFuel = 0.0;
+            
             bool AnyFuelLeft = false;
             float ratio = 0;
             string resource = GetResourceNames(vessel);
@@ -105,32 +105,18 @@ namespace WhitecatIndustries
             else
             {
                 ProtoVessel proto = vessel.protoVessel;
-                foreach (string res in resource.Split(' '))
+
+                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
                 {
-                    ratio = GetResourceRatio(vessel, index++);
-                    foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
+                    foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
                     {
-                        foreach (ProtoPartResourceSnapshot protopartresourcesnapshot in protopart.resources)
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
                         {
-                            if (protopartresourcesnapshot.resourceName == res)
-                            {
-                                if (bool.Parse(protopartresourcesnapshot.resourceValues.GetValue("flowState")) == true) // Fixed resource management 1.4.0
-                                {
-                                    PartFuel = double.Parse(protopartresourcesnapshot.resourceValues.GetValue("amount"));
-                                    if (PartFuel > (quantity/2*ratio))
-                                    {
-                                        PartFuel -= (quantity / 2 * ratio);
-                                        protopartresourcesnapshot.resourceValues.SetValue("amount", PartFuel.ToString(), 0);
-                                        AnyFuelLeft = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        protopartresourcesnapshot.resourceValues.SetValue("amount", "0", 0);
-                                        quantity -= PartFuel;
-                                    }
-                                }
-                            }
+                            ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
+                          //  quantity += double.Parse(node.GetValue("fuelLost"));
+                            node.SetValue("fuelLost", (quantity + double.Parse(node.GetValue("fuelLost"))).ToString());
+                            AnyFuelLeft = true;
+                            break;
                         }
                     }
                 }
@@ -143,8 +129,8 @@ namespace WhitecatIndustries
             int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
             if (VesselData.FetchFuel(vessel) > 0) // 1.5.0 Resource Instant drain fix
             {
-                //151 vessel.rootPart.RequestResource(MonoPropId, (Math.Abs(GetResources2(vessel, resource) - VesselData.FetchFuel(vessel))));
-               // RemoveResources2(vessel, resource, (Math.Abs(GetResources2(vessel) - VesselData.FetchFuel(vessel))));//151 is it even needed now?
+               vessel.rootPart.RequestResource(MonoPropId, (Math.Abs(GetResources(vessel, resource) - VesselData.FetchFuel(vessel))));
+               
 
             }
         }
@@ -199,12 +185,12 @@ namespace WhitecatIndustries
                             int i = 0;
                             foreach (string str in node.GetValue("ratios").Split(' '))
                             {
-                                i++;
                                 if (i == index)
                                 {
                                     ResourceRatio = float.Parse(str);
                                 break;
                                 }
+                                i++;
                             }
                             break;
 
@@ -239,13 +225,14 @@ namespace WhitecatIndustries
                 {
                     foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
                     {
-                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay" && fuel == 0)
                         {
                             ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
                             foreach( string str in node.GetValue("amounts").Split(' '))
                             {
                                 fuel += double.Parse(str);
                             }
+                            fuel -= double.Parse(node.GetValue("fuelLost"));
                             break;
 
                         }

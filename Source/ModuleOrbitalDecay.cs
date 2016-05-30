@@ -10,7 +10,7 @@ namespace WhitecatIndustries
     {
 
 
-        [KSPField(isPersistant = true, guiActive = true, guiActiveEditor = false, guiName = "USE")]
+        [KSPField(isPersistant = false , guiActive = true, guiActiveEditor = false, guiName = "USE")]
      //   [UI_ChooseOption()]
        // [UI_Label()]
         public string ODSKengine = "";
@@ -21,7 +21,7 @@ namespace WhitecatIndustries
         public string amounts;
         [KSPField(isPersistant = false, guiActive = true, guiName = "ISP" )]
         public float ISP;
-        [KSPField(isPersistant = false, guiActive = false)]
+        [KSPField(isPersistant = true, guiActive = false)]
         public int EngineIndex = 0;
 
         [KSPField(isPersistant = true)]
