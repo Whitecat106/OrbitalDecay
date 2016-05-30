@@ -62,9 +62,6 @@ namespace WhitecatIndustries
             if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
             {
                 CatchupResourceMassAreaDataComplete = false;
-                //GUIToggled = false;
-                //VesselDied = false;
-
                 // GameEvents -- //
 
                 GameEvents.onVesselWillDestroy.Add(ClearVesselOnDestroy); // Vessel destroy checks 1.1.0
@@ -78,8 +75,8 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Add(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Add(UpdateActiveVesselInformationPart);
 
-                    GameEvents.onGameStateSave.Add(QuickSaveUpdate); // Quicksave Checks 1.5.0
-                    GameEvents.onGameStatePostLoad.Add(QuickLoadUpdate); // Quickload Checks 1.5.0 
+                    GameEvents.onGameStateSave.Add(QuickLoadUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStatePostLoad.Add(QuickSaveUpdate); // Quickload Checks 1.5.0 
                 }
 
                 // -- GameEvents //
@@ -144,19 +141,18 @@ namespace WhitecatIndustries
         public void QuickSaveUpdate(ConfigNode node)
         {
             VesselData.OnQuickSave();
+        } // 1.5.0 QuickSave functionality // Thanks zajc3w!
 
-        } // 1.5.0 Quicksave functionality
-        
         public void QuickLoadUpdate(ConfigNode node)
-        {
+        { 
             VesselData.OnQuickSave();
-            VesselData.VesselInformation.ClearNodes();
+            //VesselData.VesselInformation.ClearNodes(); maybe here is offending?
             if (HighLogic.LoadedSceneIsFlight)
             {
                 VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
             }
-        } // 1.5.0 Quickload functionality
-        
+        } // 1.5.0 Quickload functionality // Thanks zajc3w!
+            
         public void ClearVesselOnDestroy(Vessel vessel)
         {
             VesselData.ClearVesselData(vessel);
@@ -164,7 +160,9 @@ namespace WhitecatIndustries
 
         public void UpdateVesselDataResources(Vessel vessel)
         {
-            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
+            //151 VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
+            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources2(vessel));//151
+            VesselData.UpdateVesselResource(vessel, ResourceManager.GetResourceNames(vessel));//151
         }
 
         #endregion
@@ -284,10 +282,17 @@ namespace WhitecatIndustries
             {
                 if (FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
                 {
-                    if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
-                    {
+                    /*if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
+                    { 
                         ResourceManager.CatchUp(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource());
+                    }*/
+                    if (VesselData.FetchFuelLost() > 0 )
+                    {
+                        ResourceManager.RemoveResources(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
+                        VesselData.SetFuelLost(0);
+
                     }
+                        
                     VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
                     print("WhitecatIndustries - Orbital Decay - Updating Fuel Levels for: " + FlightGlobals.ActiveVessel.GetName());
                     CatchupResourceMassAreaDataComplete = true;
@@ -398,7 +403,7 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Remove(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Remove(UpdateActiveVesselInformationPart);
 
-                    GameEvents.onGameStateSave.Remove(QuickSaveUpdate); // Quicksave Checks 1.5.0
+                    GameEvents.onGameStateSave.Remove(QuickSaveUpdate); 
                     GameEvents.onGameStatePostLoad.Remove(QuickLoadUpdate); // Quickload Checks 1.5.0 
                 }
 
@@ -594,7 +599,7 @@ namespace WhitecatIndustries
 
             RealisticGravitationalPertubationDecay(vessel); // 1.5.0
             RealisticRadiationDragDecay(vessel); // 1.5.0 Happens everywhere now
-            RealisticYarkovskyEffectDecay(vessel); // 1.6.0
+            RealisticYarkovskyEffectDecay(vessel); // 1.5.0 // Partial, full for 1.6.0
 
             if (body.atmosphere)  
             {
@@ -830,7 +835,7 @@ namespace WhitecatIndustries
 
         public static void RealisticYarkovskyEffectDecay(Vessel vessel) // 1.5.0 
         {
-
+            //VesselData.UpdateVesselSMA(vessel, VesselData.FetchSMA(vessel) - YarkovskyEffect.FetchDeltaSMA(vessel));
         }
 
         #endregion
@@ -919,7 +924,7 @@ namespace WhitecatIndustries
                         }
                     }
 
-                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + (vessel.orbitDriver.referenceBody.atmosphereDepth / (double)1.5)) // 1.3.0 Increased Tolerance
+                    if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + (vessel.orbitDriver.referenceBody.atmosphereDepth / (double)2.0)) // 1.5.0 Increased Tolerance
                     {
                         VesselDied = true;
                     }
@@ -1255,7 +1260,7 @@ namespace WhitecatIndustries
 
         public static double DecayRateYarkovskyEffect(Vessel vessel)
         {
-            double DecayRate = 0.0;
+            double DecayRate = YarkovskyEffect.FetchDeltaSMA(vessel);
             return DecayRate;
         }
 

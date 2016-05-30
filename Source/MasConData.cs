@@ -247,7 +247,7 @@ namespace WhitecatIndustries
             var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
             var Vesseldistance = R * c;
 
-            GalAtDistance = (CentreGal / Edgedistance) * Vesseldistance;
+            GalAtDistance = (Math.Abs(CentreGal) / Edgedistance) * Vesseldistance; // Work out negative push mascons for 1.6.0 
 
             /*
             double GravitationalConstant = 6.67408 * Math.Pow(10.0, -11.0); // G [Newton Meter Squared per Square Kilograms] 
