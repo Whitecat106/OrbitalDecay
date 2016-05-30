@@ -62,7 +62,6 @@ namespace WhitecatIndustries
                         if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
                         {
                             ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
-                          //  quantity += double.Parse(node.GetValue("fuelLost"));
                             node.SetValue("fuelLost", (quantity + double.Parse(node.GetValue("fuelLost"))).ToString());
                             break;
                         }
@@ -70,7 +69,7 @@ namespace WhitecatIndustries
                 }
             }
         }
-
+/* unused in 1.50
         public static void CatchUp(Vessel vessel, string resource)
         {
             int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
@@ -81,10 +80,10 @@ namespace WhitecatIndustries
 
             }
         }
-
+*/
         public static string GetResourceNames(Vessel vessel)//151 
         {
-            string ResourceNames = "";
+            string ResourceNames = "NONE";
             if (vessel == FlightGlobals.ActiveVessel)
             {
                 List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
@@ -148,7 +147,7 @@ namespace WhitecatIndustries
             return ResourceRatio;
         }
 
-        public static double GetResources2(Vessel vessel)//returns sum of used resources
+        public static double GetResources(Vessel vessel)//returns sum of used resources
         {
             double fuel = 0;
             if (vessel == FlightGlobals.ActiveVessel)
@@ -167,7 +166,6 @@ namespace WhitecatIndustries
             else
             {
                 ProtoVessel proto = vessel.protoVessel;
-
                 foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
                 {
                     foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
@@ -189,7 +187,7 @@ namespace WhitecatIndustries
             return fuel;
         }
 
-
+/* old code, replaced in  1.5.0
         public static double GetResources(Vessel vessel, string resource)
         {
             double quantity = 0.0;
@@ -231,19 +229,18 @@ namespace WhitecatIndustries
             return quantity;
         }
 
+<<<<<<< HEAD
+=======
+   */     
+
+
+
+
+/*  not used in 1.5.0
+>>>>>>> be88ac0dc0a2f6cbc8f07335f1a1cfdb383e4836
         public static float GetEfficiency(string resource) // Eventually combine with engine ISP but quite nice like this!
         {
             float Efficiency = 0.0f;
-           //151
-           /*PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(resource);
-            if (Settings.ReadRD())
-            {
-                Efficiency = resourceDef.density * 0.9f; // Balance here!
-            }
-            else
-            {
-                Efficiency = resourceDef.density * 10.0f;
-            }*/
             foreach (string res in resource.Split(' '))
             {
                 PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(res);
@@ -258,5 +255,6 @@ namespace WhitecatIndustries
             }
             return (Efficiency / resource.Split(' ').Count());
         }
+        */
     }
 }

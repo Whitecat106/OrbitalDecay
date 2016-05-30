@@ -157,14 +157,14 @@ namespace WhitecatIndustries
         {
             VesselData.ClearVesselData(vessel);
         }
-
+/* unused in 1.5.0
         public void UpdateVesselDataResources(Vessel vessel)
         {
             //151 VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
-            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources2(vessel));//151
+            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel));//151
             VesselData.UpdateVesselResource(vessel, ResourceManager.GetResourceNames(vessel));//151
         }
-
+*/
         #endregion
 
         #region Check Subroutines 
@@ -282,6 +282,7 @@ namespace WhitecatIndustries
             {
                 if (FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
                 {
+<<<<<<< HEAD
                     /*if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
                     { 
                         ResourceManager.CatchUp(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource());
@@ -292,6 +293,17 @@ namespace WhitecatIndustries
                         VesselData.SetFuelLost(0);
 
                     }
+=======
+                    if (FlightGlobals.ActiveVessel.FindPartModulesImplementing<ModuleOrbitalDecay>().Any())
+                    {
+                        if (VesselData.FetchFuelLost() > 0)
+                        {
+                            ResourceManager.RemoveResources(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
+                            VesselData.SetFuelLost(0);
+
+                        }
+                    }
+>>>>>>> be88ac0dc0a2f6cbc8f07335f1a1cfdb383e4836
                         
                     VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
                     print("WhitecatIndustries - Orbital Decay - Updating Fuel Levels for: " + FlightGlobals.ActiveVessel.GetName());
@@ -355,7 +367,7 @@ namespace WhitecatIndustries
                                     {
                                         StationKeepingManager.FuelManager(vessel);
                                     }
-
+/* not necessary in 1.5.0
                                     if (HighLogic.LoadedSceneIsFlight) // UI Resource Updating 1.4.2
                                     {
                                         if (vessel == FlightGlobals.ActiveVessel)
@@ -363,6 +375,7 @@ namespace WhitecatIndustries
                                             UpdateVesselDataResources(vessel);
                                         }
                                     }
+                                    */
                                 }
                             }
                         }
