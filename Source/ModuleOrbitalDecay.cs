@@ -32,7 +32,7 @@ namespace WhitecatIndustries
         [KSPEvent(active = true, guiActive = true, guiName = "Enable Station Keeping")]
         public void ToggleSK()
         {
-            VesselData.UpdateStationKeeping(this.vessel, !VesselData.FetchStationKeeping(vessel));
+            VesselData.UpdateStationKeeping(this.vessel, VesselData.FetchStationKeeping(vessel));
             stationKeepData.IsStationKeeping = !stationKeepData.IsStationKeeping;
             updatedisplayedData();
            
