@@ -930,8 +930,8 @@ namespace WhitecatIndustries
                         if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth)
                         {
                             TimeWarp.SetRate(0, true);
-                            print("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
-                            ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
+                            print("Warning: " + vessel.vesselName + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
+                            ScreenMessages.PostScreenMessage("Warning: " + vessel.vesselName + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
                             MessageDisplayed.Add(vessel, true);
                         }
                     }
@@ -948,8 +948,8 @@ namespace WhitecatIndustries
                         if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + 5000)
                         {
                             TimeWarp.SetRate(0, true);
-                            print("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
-                            ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
+                            print("Warning: " + vessel.vesselName + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
+                            ScreenMessages.PostScreenMessage("Warning: " + vessel.vesselName + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
                             MessageDisplayed.Add(vessel, true);
                         }
                     }
@@ -964,8 +964,8 @@ namespace WhitecatIndustries
                 {
                     if (vessel != FlightGlobals.ActiveVessel)
                     {
-                        print(vessel.name + " entered " + vessel.orbitDriver.referenceBody.name + "'s atmosphere and was destroyed");
-                        ScreenMessages.PostScreenMessage(vessel.name + " entered " + vessel.orbitDriver.referenceBody.name + "'s atmosphere and was destroyed");
+                        print(vessel.vesselName + " entered " + vessel.orbitDriver.referenceBody.name + "'s atmosphere and was destroyed");
+                        ScreenMessages.PostScreenMessage(vessel.vesselName + " entered " + vessel.orbitDriver.referenceBody.name + "'s atmosphere and was destroyed");
                         if (MessageDisplayed.ContainsKey(vessel))
                         {
                             MessageDisplayed.Remove(vessel);

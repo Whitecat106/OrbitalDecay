@@ -54,7 +54,7 @@ namespace WhitecatIndustries
                     {
                         if (PPMS.moduleName.Contains("ModuleEngines")) // 1.5.0 Part Module Fixes
                         {
-                            //if (bool.Parse(PPMS.moduleValues.GetValue("EngineIgnited"))) - check if engine is ignited
+                            if (bool.Parse(PPMS.moduleValues.GetValue("EngineIgnited"))) //Lets use this, adds an interesting element to engine igniter games. 
                             {
                                 HasEngine = true;
                                 break;
@@ -62,7 +62,7 @@ namespace WhitecatIndustries
                         }
                         else if(PPMS.moduleName.Contains("ModuleRCS"))
                         {
-                            //if (bool.Parse(PPMS.moduleValues.GetValue("rcsEnabled"))) do we want it?
+                            if (bool.Parse(PPMS.moduleValues.GetValue("rcsEnabled"))) // doesnt seem to have an effect. 
                             {
                                 HasEngine = true;
                                 break;
@@ -94,12 +94,9 @@ namespace WhitecatIndustries
         public static void FuelManager(Vessel vessel)
         {
             string ResourceName = "";
-            //ResourceName = VesselData.FetchResource(vessel);
             ResourceName = ResourceManager.GetResourceNames(vessel);
             double CurrentFuel = 0;
-        //    CurrentFuel = VesselData.FetchFuel(vessel);
             CurrentFuel = ResourceManager.GetResources(vessel);
-     //       double ResourceEfficiency = ResourceManager.GetEfficiency(ResourceName);
             double ResourceEfficiency = VesselData.FetchEfficiency(vessel);// effi calculation based on vessel engine ISP stored in stationKeepData.ISP NEED ballance
             double LostFuel = 0.0;
 
@@ -107,44 +104,52 @@ namespace WhitecatIndustries
 
             double FuelNew = CurrentFuel - LostFuel;
 
-            if (EngineCheck(vessel) == false) // 1.3.0
+            /// Remote tech compatibility - 1.5.0 /// 
+            bool RemoteTechInstalled = LoadingCheck.RemoteTechInstalled;
+            bool SignalCheck = false;
+            bool ConnectionToVessel = true;
+
+            if (RemoteTechInstalled)
             {
-                ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has no operational Engines or RCS modules, Station Keeping disabled.");
-                VesselData.UpdateStationKeeping(vessel, false);
+
+                // Add Part Module Checks Here // Maybe 1.6.0 
+
+
+                if (ConnectionToVessel = false)
+                {
+                    SignalCheck = false;
+                    ScreenMessages.PostScreenMessage("Warning: " + vessel.vesselName + " has no connection to send Station Keeping command!");
+                    VesselData.UpdateStationKeeping(vessel, false);
+                }
+            }
+            else 
+            {
+                SignalCheck = true;
             }
 
-            else if (EngineCheck(vessel) == true)
+            if (SignalCheck == true)
             {
-                
-                if ( FuelNew <= 0 )
+
+                if (EngineCheck(vessel) == false) // 1.3.0
                 {
-                    ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has run out of " + ResourceName + ", Station Keeping disabled.");
+                    ScreenMessages.PostScreenMessage("Warning: " + vessel.vesselName + " has no operational Engines or RCS modules, Station Keeping disabled.");
                     VesselData.UpdateStationKeeping(vessel, false);
-                    VesselData.UpdateVesselFuel(vessel, 0);
                 }
-                else
+
+                else if (EngineCheck(vessel) == true)
                 {
-                    VesselData.UpdateVesselFuel(vessel, FuelNew);
-                    ResourceManager.RemoveResources(vessel, LostFuel);
-                }
-                /*
-                if (CurrentFuel < LostFuel)
-                {
-                    ScreenMessages.PostScreenMessage("Warning: " + vessel.name + " has run out of " + ResourceName + ", Station Keeping disabled.");
-                    VesselData.UpdateStationKeeping(vessel, false);
-                    VesselData.UpdateVesselFuel(vessel, 0);
-                }
-                else
-                {
-                    if (vessel == FlightGlobals.ActiveVessel)
+                    if (FuelNew <= 0)
                     {
-                        ResourceManager.CatchUp(vessel, ResourceName);
-                        ResourceManager.RemoveResources(vessel, ResourceName, (LostFuel)); // Balancing required here
+                        ScreenMessages.PostScreenMessage("Warning: " + vessel.vesselName + " has run out of " + ResourceName + ", Station Keeping disabled.");
+                        VesselData.UpdateStationKeeping(vessel, false);
+                        VesselData.UpdateVesselFuel(vessel, 0);
                     }
-                    VesselData.UpdateVesselFuel(vessel, FuelNew);
-                    
+                    else
+                    {
+                        VesselData.UpdateVesselFuel(vessel, FuelNew);
+                        ResourceManager.RemoveResources(vessel, LostFuel);
+                    }
                 }
-                */
             }
         }
     }

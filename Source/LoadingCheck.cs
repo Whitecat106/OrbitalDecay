@@ -62,7 +62,9 @@ namespace WhitecatIndustries
         public string KSPOrbitDecayLite = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/OrbitDecayLite/KSPOrbitDecayLite.dll";
         public string RealSolar = KSPUtil.ApplicationRootPath + "GameData/RealSolarSystem/Plugins/RealSolarSystem.dll";
         public string PersistentRotation = KSPUtil.ApplicationRootPath + "GameData/PersistentRotation/Plugins/NOTREADYYET1.6.0"; // 1.6.0 Persistent Rotation
+        public string RemoteTech = KSPUtil.ApplicationRootPath + "GameData/RemoteTech/Plugins/RemoteTech.dll"; // 1.6.0 Remote Tech Compatibility
         public static bool PersistentRotationInstalled = false;
+        public static bool RemoteTechInstalled = false;
 
         void Start()
         {

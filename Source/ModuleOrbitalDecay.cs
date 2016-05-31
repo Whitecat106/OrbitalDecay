@@ -154,7 +154,7 @@ namespace WhitecatIndustries
             }
             else
             {
-                proplist.Add("NONE");
+                proplist.Add("No Resoures Available");
                 amountlist.Add(0);
                 ratiolist.Add(0);
                 stationKeepData.ISP = 0;
@@ -281,7 +281,7 @@ namespace WhitecatIndustries
                 }
                 else
                 {
-                    EngineList = new string[] { "NONE AVAILABLE" };
+                    EngineList = new string[] { "None Available" };
                 }
                 updatedisplayedData();
 

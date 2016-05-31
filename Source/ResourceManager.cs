@@ -69,21 +69,10 @@ namespace WhitecatIndustries
                 }
             }
         }
-/* unused in 1.50
-        public static void CatchUp(Vessel vessel, string resource)
-        {
-            int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
-            if (VesselData.FetchFuel(vessel) > 0) // 1.5.0 Resource Instant drain fix
-            {
-               vessel.rootPart.RequestResource(MonoPropId, (Math.Abs(GetResources(vessel, resource) - VesselData.FetchFuel(vessel))));
-               
 
-            }
-        }
-*/
         public static string GetResourceNames(Vessel vessel)//151 
         {
-            string ResourceNames = "NONE";
+            string ResourceNames = "No Resources Available";
             if (vessel == FlightGlobals.ActiveVessel)
             {
                 List<ModuleOrbitalDecay> modlist = vessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
@@ -186,73 +175,5 @@ namespace WhitecatIndustries
             }
             return fuel;
         }
-
-/* old code, replaced in  1.5.0
-        public static double GetResources(Vessel vessel, string resource)
-        {
-            double quantity = 0.0;
-
-            if (vessel != FlightGlobals.ActiveVessel)
-            {
-                ProtoVessel proto = vessel.protoVessel;
-
-                foreach (ProtoPartSnapshot protopart in proto.protoPartSnapshots)
-                {
-                    foreach (ProtoPartResourceSnapshot protopartresourcesnapshot in protopart.resources)
-                    {
-                        if (protopartresourcesnapshot.resourceName == resource)
-                        {
-                            if (bool.Parse(protopartresourcesnapshot.resourceValues.GetValue("flowState")) == true) // Fixed resource management 1.4.0
-                            {
-                                quantity = quantity + double.Parse(protopartresourcesnapshot.resourceValues.GetValue("amount"));
-                            }
-                        }
-                    }
-                }
-            }
-
-            else
-            {
-                int MonoPropId = PartResourceLibrary.Instance.GetDefinition(resource).id;
-                List<PartResource> Resources = new List<PartResource>();
-                vessel.rootPart.GetConnectedResources(MonoPropId, ResourceFlowMode.STAGE_PRIORITY_FLOW, Resources);
-
-                    if (Resources.Count > 0)
-                    {
-                        foreach (PartResource Res in Resources)
-                        {
-                            quantity = quantity + Res.amount;
-                        }
-                    }
-            }
-
-            return quantity;
-        }
-
-   */     
-
-
-
-
-/*  not used in 1.5.0
- * 
-        public static float GetEfficiency(string resource) // Eventually combine with engine ISP but quite nice like this!
-        {
-            float Efficiency = 0.0f;
-            foreach (string res in resource.Split(' '))
-            {
-                PartResourceDefinition resourceDef = PartResourceLibrary.Instance.GetDefinition(res);
-                if (Settings.ReadRD())
-                {
-                    Efficiency += resourceDef.density * 0.9f; // Balance here!
-                }
-                else
-                {
-                    Efficiency += resourceDef.density * 10.0f;
-                }
-            }
-            return (Efficiency / resource.Split(' ').Count());
-        }
-        */
     }
 }

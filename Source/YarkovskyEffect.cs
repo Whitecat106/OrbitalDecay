@@ -81,7 +81,7 @@ namespace WhitecatIndustries
 
                 else
                 {
-                    Quaternion VesselRotation = vessel.srfRelRotation; // Issues here work out a background rotational calculation?
+                    Quaternion VesselRotation = new Quaternion().Inverse(); // Issues here work out a background rotational calculation?
                     Vector3 TemporaryAxis;
                     VesselRotation.ToAngleAxis(out ObliquityOfSpinAxis, out TemporaryAxis);
                     Vector3 AngularSpeed = (TemporaryAxis * ObliquityOfSpinAxis); // Rotation Per Second?
