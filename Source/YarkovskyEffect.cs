@@ -35,7 +35,16 @@ namespace WhitecatIndustries
             double Volume = (4.0 / 3.0) * Math.PI * Math.Pow(Radius, 3.0);
             double Density = Mass / Volume;
             double c = Math.Pow(8.0 * 10, 8);
-            double Altitude = vessel.orbitDriver.orbit.referenceBody.orbit.altitude;
+            double Altitude = 0;
+            if (vessel.orbitDriver.orbit.referenceBody == Sun.Instance.sun) // Checks for the sun
+            {
+                Altitude = vessel.orbitDriver.orbit.altitude;
+            }
+            else
+            {
+                Altitude = vessel.orbitDriver.orbit.referenceBody.orbit.altitude;
+            }
+
             double SolarEnergy = (double)Math.Pow(((double)3.86 * (double)10.0), (double)26.0);
             double SolarConstant = 0.0;
             SolarConstant = SolarEnergy / ((double)4.0 * (double)Math.PI * (double)Math.Pow(Altitude, (double)2.0)); // W/m^2

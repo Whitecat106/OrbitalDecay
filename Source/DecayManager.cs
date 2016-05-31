@@ -847,7 +847,7 @@ namespace WhitecatIndustries
 
         public static void RealisticYarkovskyEffectDecay(Vessel vessel) // 1.5.0 
         {
-            //VesselData.UpdateVesselSMA(vessel, VesselData.FetchSMA(vessel) - (-1.0 * YarkovskyEffect.FetchDeltaSMA(vessel)));
+            VesselData.UpdateVesselSMA(vessel, VesselData.FetchSMA(vessel) - (-1.0 * YarkovskyEffect.FetchDeltaSMA(vessel)));
         }
 
         #endregion
