@@ -32,7 +32,7 @@ namespace WhitecatIndustries
         [KSPEvent(active = true, guiActive = true, guiName = "Enable Station Keeping")]
         public void ToggleSK()
         {
-            VesselData.UpdateStationKeeping(this.vessel, !stationKeepData.IsStationKeeping);
+            VesselData.UpdateStationKeeping(this.vessel, !VesselData.FetchStationKeeping(vessel));
             stationKeepData.IsStationKeeping = !stationKeepData.IsStationKeeping;
             updatedisplayedData();
            
@@ -189,7 +189,7 @@ namespace WhitecatIndustries
                 engineIsListed = false;
                 foreach (ConfigNode engineNode in EngineData.GetNodes())
                 {
-                    if (engineNode.GetValue("name") == module.part.name)//ugly names used - can't find way to get editor part names 
+                    if (engineNode.GetValue("name") == module.part.protoPartSnapshot.partInfo.title)//ugly names used - can't find way to get editor part names 
                     {
                         engineIsListed = true;
                         break;
@@ -200,7 +200,7 @@ namespace WhitecatIndustries
                 if (module.EngineIgnited && !engineIsListed)
                 {
                     ConfigNode engineNode = new ConfigNode("ENGINE");
-                    engineNode.AddValue("name", module.part.name);//ugly names used - can't find way to get editor part names
+                    engineNode.AddValue("name", module.part.protoPartSnapshot.partInfo.title);//ugly names used - can't find way to get editor part names
                     engineNode.AddValue("ISP", module.atmosphereCurve.Evaluate(0).ToString());
 
                     foreach (Propellant propellant in module.propellants)
@@ -225,7 +225,7 @@ namespace WhitecatIndustries
                 engineIsListed = false;
                 foreach (ConfigNode engineNode in EngineData.GetNodes())
                 {
-                    if (engineNode.GetValue("name") == module.part.name)
+                    if (engineNode.GetValue("name") == module.part.protoPartSnapshot.partInfo.title)
                     {
                         engineIsListed = true;
                         break;
@@ -235,7 +235,7 @@ namespace WhitecatIndustries
                 if (module.rcsEnabled && !engineIsListed)
                 {
                     ConfigNode engineNode = new ConfigNode("ENGINE");
-                    engineNode.AddValue("name", module.part.name);
+                    engineNode.AddValue("name", module.part.protoPartSnapshot.partInfo.title);
                     engineNode.AddValue("ISP", module.atmosphereCurve.Evaluate(0).ToString());
                     foreach (Propellant propellant in module.propellants)
                     {
