@@ -26,7 +26,7 @@ namespace WhitecatIndustries
         public static double DiuralSMAChange(Vessel vessel)
         {
             double RateOfChangeOfSMA = 0;
-            double InitialSMA = vessel.orbitDriver.orbit.semiMajorAxis;
+            double InitialSMA = VesselData.FetchSMA(vessel) ;
             double Albedo = 0.12; // Work on something better for this! Currently using Worn Asphalt as a guide... 
             double MeanMotion = (360.0) / vessel.orbitDriver.orbit.period;
             double Area = VesselData.FetchArea(vessel);
@@ -111,7 +111,7 @@ namespace WhitecatIndustries
                 RateOfChangeOfSMA = 0;
             }
 
-            //print("RateOfChangeOfSMAYarkovsky: " + RateOfChangeOfSMA);
+            //print("RateOfChangeOfSMAYarkovsky: " + RateOfChangeOfSMA); // Still getting UI errors here
 
             return RateOfChangeOfSMA;
         }

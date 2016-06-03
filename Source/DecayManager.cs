@@ -39,6 +39,7 @@ namespace WhitecatIndustries
 
         private float UPTInterval = 1.0f;
         private float lastUpdate = 0.0f;
+        private float lastUpdate2 = 0.0f;
 
         public static double DecayValue;
         public static double MaxDecayValue;
@@ -52,6 +53,11 @@ namespace WhitecatIndustries
         public static bool EVAActive = false;
 
         public static bool CatchupResourceMassAreaDataComplete = false;
+
+        public static bool QuickloadKeyDown = false;
+        public static KeyCode QuickloadKeyWindows = KeyCode.F9;
+        public static KeyCode QuickloadKeyMac = KeyCode.F6;
+        public static float UpdateTimer = 0.0f;
 
         #endregion
 
@@ -74,9 +80,6 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Add(UpdateActiveVesselInformationPart); // Resource level change 1.3.0
                     GameEvents.onPartActionUIDismiss.Add(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Add(UpdateActiveVesselInformationPart);
-
-                    GameEvents.onGameStateSave.Add(QuickLoadUpdate); // Quicksave Checks 1.5.0
-                    GameEvents.onGameStatePostLoad.Add(QuickSaveUpdate); // Quickload Checks 1.5.0 
                 }
 
                 // -- GameEvents //
@@ -143,28 +146,25 @@ namespace WhitecatIndustries
             VesselData.OnQuickSave();
         } // 1.5.0 QuickSave functionality // Thanks zajc3w!
 
-        public void QuickLoadUpdate(ConfigNode node)
-        { 
+        public void QuickLoadUpdate()
+        {
+            VesselData.VesselInformation.ClearNodes();
+            string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/PluginData/VesselData.cfg";
+            ConfigNode FileM = new ConfigNode();
+            ConfigNode FileN = new ConfigNode("VESSEL");
+            FileN.AddValue("name", "WhitecatsDummyVessel");
+            FileN.AddValue("id", "000");
+            FileN.AddValue("persistence", "WhitecatsDummySaveFileThatNoOneShouldNameTheirSave");
+            FileM.AddNode(FileN);
+            VesselData.VesselInformation.AddNode(FileM);
             VesselData.OnQuickSave();
-            //VesselData.VesselInformation.ClearNodes(); maybe here is offending?
-            if (HighLogic.LoadedSceneIsFlight)
-            {
-                VesselData.UpdateActiveVesselData(FlightGlobals.ActiveVessel);
-            }
-        } // 1.5.0 Quickload functionality // Thanks zajc3w!
+
+        }
             
         public void ClearVesselOnDestroy(Vessel vessel)
         {
             VesselData.ClearVesselData(vessel);
         }
-/* unused in 1.5.0
-        public void UpdateVesselDataResources(Vessel vessel)
-        {
-            //151 VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Settings.ReadStationKeepingResource()));
-            VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel));//151
-            VesselData.UpdateVesselResource(vessel, ResourceManager.GetResourceNames(vessel));//151
-        }
-*/
         #endregion
 
         #region Check Subroutines 
@@ -252,7 +252,16 @@ namespace WhitecatIndustries
 
             if (HighLogic.LoadedSceneIsFlight)
             {
-                double Distance = Vector3d.Distance(vessel.GetWorldPos3D(), FlightGlobals.ActiveVessel.GetWorldPos3D()); // Fixes Rendezvous Issues Hopefully
+                double Distance = 0;
+                try
+                {
+                    Distance = Vector3d.Distance(vessel.GetWorldPos3D(), FlightGlobals.ActiveVessel.GetWorldPos3D());
+                }
+                catch (NullReferenceException)
+                {
+                    Distance = 100001;
+                }
+
                 if (Distance < 100000)
                 {
                     close = true;
@@ -262,7 +271,7 @@ namespace WhitecatIndustries
                 {
                     foreach (Vessel v in FlightGlobals.Vessels)
                     {
-                        if (v.loaded && v != vessel) // && (v.vesselType == VesselType.EVA || v.vesselType == VesselType.Debris))
+                        if (!v.packed && v != vessel) // && (v.vesselType == VesselType.EVA || v.vesselType == VesselType.Debris)) maybe if !V.packed?
                         {
                             close = true;
                             break;
@@ -278,15 +287,32 @@ namespace WhitecatIndustries
 
         public void FixedUpdate()
         {
+            if ((Time.time - lastUpdate2) > UPTInterval / 10.0)
+            {
+
+                if (Input.GetKeyDown(QuickloadKeyWindows)) // Quick load request check
+                {
+                    UpdateTimer = UpdateTimer + (UPTInterval / 10.0f);
+
+                    if (UpdateTimer > 0.05f)
+                    {
+                        QuickloadKeyDown = true;
+                        UpdateTimer = 0.0f;
+                    }
+
+                    if (QuickloadKeyDown == true)
+                    {
+                        print("F9 Held");
+                        QuickLoadUpdate();
+                    }
+                }
+            }
+
+
             if (Time.timeSinceLevelLoad > 0.4 && HighLogic.LoadedSceneIsFlight && CatchupResourceMassAreaDataComplete == false && (FlightGlobals.ActiveVessel.situation == Vessel.Situations.ORBITING || FlightGlobals.ActiveVessel.situation == Vessel.Situations.SUB_ORBITAL))
             {
                 if (FlightGlobals.ActiveVessel.isActiveAndEnabled) // Vessel is ready
                 {
-
-                    /*if (VesselData.FetchFuel(FlightGlobals.ActiveVessel) < ResourceManager.GetResources(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource()))
-                    { 
-                        ResourceManager.CatchUp(FlightGlobals.ActiveVessel, Settings.ReadStationKeepingResource());
-                    }*/
                     if (VesselData.FetchFuelLost() > 0 )
                     {
                         ResourceManager.RemoveResources(FlightGlobals.ActiveVessel, VesselData.FetchFuelLost());
@@ -366,15 +392,6 @@ namespace WhitecatIndustries
                                     {
                                         StationKeepingManager.FuelManager(vessel);
                                     }
-/* not necessary in 1.5.0
-                                    if (HighLogic.LoadedSceneIsFlight) // UI Resource Updating 1.4.2
-                                    {
-                                        if (vessel == FlightGlobals.ActiveVessel)
-                                        {
-                                            UpdateVesselDataResources(vessel);
-                                        }
-                                    }
-                                    */
                                 }
                             }
                         }
@@ -414,9 +431,6 @@ namespace WhitecatIndustries
                     GameEvents.onPartActionUIDismiss.Remove(UpdateActiveVesselInformationPart); // 1.3.0
                     GameEvents.onPartActionUIDismiss.Remove(SetGUIToggledFalse);
                     GameEvents.onPartActionUICreate.Remove(UpdateActiveVesselInformationPart);
-
-                    GameEvents.onGameStateSave.Remove(QuickSaveUpdate); 
-                    GameEvents.onGameStatePostLoad.Remove(QuickLoadUpdate); // Quickload Checks 1.5.0 
                 }
 
                 Vessel vessel = new Vessel();  // Set Vessel Orbits
@@ -483,15 +497,6 @@ namespace WhitecatIndustries
 
                     if (VesselData.FetchSMA(vessel) != 0)
                     {
-                        /*
-                        var oldBody = vessel.orbitDriver.orbit.referenceBody;
-                        var orbit = vessel.orbitDriver.orbit;
-                        if (vessel.orbitDriver.orbit.eccentricity > 0.001)
-                        {
-                            SetOrbitEccentricity(vessel);
-                        }
-                         */
-
                         SetOrbitEccentricity(vessel);
                         SetOrbitINC(vessel);
                         //SetOrbitLAN(vessel);
@@ -774,14 +779,13 @@ namespace WhitecatIndustries
 
             double SolarEnergy = (double)Math.Pow(((double)3.86 * (double)10.0), (double)26); // W
             double SolarDistance = 0.0;
-            if (vessel.orbitDriver.orbit.referenceBody.GetName() != "Sun")
-            {
-                SolarDistance = body.orbitDriver.orbit.altitude; // m
-            }
-
-            else
+            if (vessel.orbitDriver.orbit.referenceBody == Sun.Instance.sun) // Checks for the sun
             {
                 SolarDistance = vessel.orbitDriver.orbit.altitude;
+            }
+            else
+            {
+                SolarDistance = vessel.orbitDriver.orbit.referenceBody.orbit.altitude;
             }
 
             double SolarConstant = SolarEnergy / ((double)4.0 * (double)Math.PI * Math.Pow((double)SolarDistance, (double)2.0)); // W/m^2
@@ -984,11 +988,12 @@ namespace WhitecatIndustries
         public static void ActiveDecayRealistic(Vessel vessel)            // 1.4.0 Use Rigidbody.addForce
         { 
             double ReadTime = HighLogic.CurrentGame.UniversalTime;
-            double DecayValue = DecayRateAtmosphericDrag(vessel);
+            double DecayValue = DecayRateTotal(vessel);
             double InitialVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
             double CalculatedFinalVelocity = 0.0;
             Orbit newOrbit = vessel.orbitDriver.orbit;
-            newOrbit.semiMajorAxis = (VesselData.FetchSMA(vessel) - DecayValue);
+            //newOrbit.semiMajorAxis = (VesselData.FetchSMA(vessel) - DecayValue);
+            double NewSemiMajorAxis = (VesselData.FetchSMA(vessel) - DecayValue);
             CalculatedFinalVelocity = newOrbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
 
             double DeltaVelocity = InitialVelocity - CalculatedFinalVelocity;
@@ -1008,7 +1013,7 @@ namespace WhitecatIndustries
                         }
                     }
 
-                    VesselData.UpdateVesselSMA(vessel, newOrbit.semiMajorAxis);
+                    VesselData.UpdateVesselSMA(vessel, NewSemiMajorAxis);
                 }
             }
 
@@ -1031,11 +1036,12 @@ namespace WhitecatIndustries
         public static void ActiveDecayStock(Vessel vessel)
         {
             double ReadTime = HighLogic.CurrentGame.UniversalTime;
-            double DecayValue = DecayRateAtmosphericDrag(vessel);
+            double DecayValue = DecayRateTotal(vessel);
             double InitialVelocity = vessel.orbitDriver.orbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
             double CalculatedFinalVelocity = 0.0;
             Orbit newOrbit = vessel.orbitDriver.orbit;
-            newOrbit.semiMajorAxis = (VesselData.FetchSMA(vessel) - DecayValue);
+            //newOrbit.semiMajorAxis = (VesselData.FetchSMA(vessel) - DecayValue);
+            double NewSemiMajorAxis = (VesselData.FetchSMA(vessel) - DecayValue);
             CalculatedFinalVelocity = newOrbit.getOrbitalVelocityAtUT(ReadTime).magnitude;
             double DeltaVelocity = InitialVelocity - CalculatedFinalVelocity;
             double decayForce = DeltaVelocity * (vessel.GetTotalMass() /1000.0);
@@ -1053,7 +1059,7 @@ namespace WhitecatIndustries
                            // p.Rigidbody.AddForce((Vector3d.back * (decayForce))); // 1.5.0 Too Fast Still
                         }
                     }
-                    VesselData.UpdateVesselSMA(vessel, newOrbit.semiMajorAxis);
+                    VesselData.UpdateVesselSMA(vessel, NewSemiMajorAxis);
                 }
 
             }
@@ -1083,7 +1089,16 @@ namespace WhitecatIndustries
             double DecayRate = 0.0;
             CelestialBody body = vessel.orbitDriver.orbit.referenceBody;
             double SolarEnergy = (double)Math.Pow(((double)3.86 * (double)10.0), (double)26.0); // W
-            double SolarDistance = body.orbitDriver.orbit.altitude; // m
+            double SolarDistance = 0.0;
+            if (vessel.orbitDriver.orbit.referenceBody == Sun.Instance.sun) // Checks for the sun
+            {
+                SolarDistance = vessel.orbitDriver.orbit.altitude;
+            }
+            else
+            {
+                SolarDistance = vessel.orbitDriver.orbit.referenceBody.orbit.altitude;
+            }
+
             double SolarConstant = 0.0;
             SolarConstant = SolarEnergy / ((double)4.0 * (double)Math.PI * (double)Math.Pow((double)SolarDistance, (double)2.0)); // W/m^2
             double InitialSemiMajorAxis = VesselData.FetchSMA(vessel);
@@ -1275,6 +1290,12 @@ namespace WhitecatIndustries
             double DecayRate = YarkovskyEffect.FetchDeltaSMA(vessel);
             return DecayRate;
         }
+
+        public static double DecayRateTotal(Vessel vessel)
+        {
+            double Total = DecayRateAtmosphericDrag(vessel) + DecayRateGravitationalPertubation(vessel) + DecayRateRadiationPressure(vessel) + DecayRateYarkovskyEffect(vessel);
+            return Total;
+        } // Total for 1.5.0
 
 #endregion 
 

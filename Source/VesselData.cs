@@ -39,11 +39,6 @@ namespace WhitecatIndustries
         public static ConfigNode VesselInformation = new ConfigNode();
         public static string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/PluginData/VesselData.cfg";
         public static ConfigNode File = ConfigNode.Load(FilePath);
-        /* VesselInformation is used for volatile data storacge
-         * no need to save or load
-         *  remove save/load functions after testing
-         */
-
 
         public static double EndSceneWaitTime = 0;
         public static double StartSceneWaitTime = 0;
@@ -152,7 +147,7 @@ namespace WhitecatIndustries
                     print("WhitecatIndustries - Orbital Decay - Vessel Information saved.");
                     File.ClearNodes();
                     VesselInformation.Save(FilePath);
-                    //VesselInformation.ClearNodes();
+                    VesselInformation.ClearNodes();
                 }
             }
         }
@@ -228,39 +223,10 @@ namespace WhitecatIndustries
 
             if (found == true)
             {
-               // string ResourceName = "";
-               // ResourceName = Settings.ReadStationKeepingResource();
-
                 VesselNode.SetValue("Mass", (vessel.GetTotalMass() * 1000).ToString());
                 VesselNode.SetValue("Area", (CalculateVesselArea(vessel)).ToString());
-                //151VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel, ResourceName)).ToString());
-            //    VesselNode.SetValue("Fuel", (ResourceManager.GetResources(vessel)).ToString());//151
-             //   VesselNode.SetValue("Resource", ResourceManager.GetResourceNames(vessel));//151
             }
         }
-/* not used in 1.5.0
-        public static string FetchResource(Vessel vessel)
-        {
-            string Resource = "";
-            ConfigNode VesselNode = new ConfigNode("VESSEL");
-            bool found = false;
-
-            foreach (ConfigNode node in VesselInformation.GetNodes("VESSEL"))
-            {
-                if (node.GetValue("id") == vessel.id.ToString())
-                {
-                    VesselNode = node;
-                    found = true;
-                    break;
-                }
-            }
-            if (found == true)
-            {
-                Resource = VesselNode.GetValue("Resource");
-            }
-            return Resource;
-        }
-        */
 
         public static void ClearVesselData(Vessel vessel)
         {
@@ -286,10 +252,6 @@ namespace WhitecatIndustries
         public static ConfigNode BuildConfigNode(Vessel vessel)
         {
             ConfigNode newVessel = new ConfigNode("VESSEL");
-
-           // string ResourceName = "";
-           // ResourceName = Settings.ReadStationKeepingResource();
-
             newVessel.AddValue("name", vessel.GetName());
             newVessel.AddValue("id", vessel.id.ToString());
             newVessel.AddValue("persistence", HighLogic.SaveFolder.ToString());
@@ -360,7 +322,6 @@ namespace WhitecatIndustries
 
         public static double FetchFuelLost()
         {
-            
             List<ModuleOrbitalDecay> modlist = FlightGlobals.ActiveVessel.FindPartModulesImplementing<ModuleOrbitalDecay>();
             double FuelLost = modlist.ElementAt(0).stationKeepData.fuelLost;
             return FuelLost;
