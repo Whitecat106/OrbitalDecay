@@ -104,7 +104,7 @@ namespace WhitecatIndustries
 
             double FuelNew = CurrentFuel - LostFuel;
 
-            /// Remote tech compatibility - 1.5.0 /// 
+            /// Remote tech compatibility - 1.6.0 /// 
             bool RemoteTechInstalled = LoadingCheck.RemoteTechInstalled;
             bool SignalCheck = false;
             bool ConnectionToVessel = true;

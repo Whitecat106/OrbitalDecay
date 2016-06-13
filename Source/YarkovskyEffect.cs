@@ -111,8 +111,6 @@ namespace WhitecatIndustries
                 RateOfChangeOfSMA = 0;
             }
 
-            //print("RateOfChangeOfSMAYarkovsky: " + RateOfChangeOfSMA); // Still getting UI errors here
-
             return RateOfChangeOfSMA;
         }
 

@@ -36,7 +36,7 @@ namespace WhitecatIndustries
     [KSPAddon(KSPAddon.Startup.EveryScene,false)]
     public class Settings : MonoBehaviour
     {
-        public static string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/PluginData/Settings.cfg";
+        public static string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/Plugins/PluginData/Settings.cfg";
         public static ConfigNode SettingData = new ConfigNode();
         public static ConfigNode settings = ConfigNode.Load(FilePath);
 

@@ -37,7 +37,7 @@ namespace WhitecatIndustries
     public class VesselData : MonoBehaviour
     {
         public static ConfigNode VesselInformation = new ConfigNode();
-        public static string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/PluginData/VesselData.cfg";
+        public static string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/Plugins/PluginData/VesselData.cfg";
         public static ConfigNode File = ConfigNode.Load(FilePath);
 
         public static double EndSceneWaitTime = 0;
@@ -778,33 +778,6 @@ namespace WhitecatIndustries
             return 1/Efficiency;
         }
 
-/* unused in 1.5.0
-        public static double FetchFuel(Vessel vessel)
-        {
-                                                                           
-           ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-            double Fuel = 0.0;
-
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    Fuel = double.Parse(Vessel.GetValue("Fuel").ToString());
-                    break;
-                }
-            }
-
-            return Fuel;
-        }
-        */
-
         public static void UpdateBody(Vessel vessel, CelestialBody body)
         {
             ConfigNode Data = VesselInformation;
@@ -846,28 +819,6 @@ namespace WhitecatIndustries
                 }
             }
         }
-/* unused in 1.5.0
-        public static void UpdateVesselResource(Vessel vessel, string Resource)
-        {
-            ConfigNode Data = VesselInformation;
-            bool Vesselfound = false;
-
-            foreach (ConfigNode Vessel in Data.GetNodes("VESSEL"))
-            {
-                string id = Vessel.GetValue("id");
-                if (id == vessel.id.ToString())
-                {
-                    Vesselfound = true;
-                }
-
-                if (Vesselfound == true)
-                {
-                    Vessel.SetValue("Resource", Resource);
-                    break;
-                }
-            }
-        }
-        */
 
         public static double CalculateVesselArea(Vessel vessel)
         {
