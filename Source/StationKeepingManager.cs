@@ -35,7 +35,18 @@ namespace WhitecatIndustries
 
     public class StationKeepingManager : MonoBehaviour
     {
-      
+
+        public static bool CheckCanStationkeep(Vessel vessel) // 1.6.0 
+        {
+            bool CanStationKeep = false;
+
+
+
+
+
+            return CanStationKeep;
+        }
+
         public static bool EngineCheck(Vessel vessel) // 1.3.0
         {
 

@@ -62,6 +62,21 @@ namespace WhitecatIndustries
             ConfigNode SimSet = Data.GetNode("SIMULATION");
             SimSet.SetValue("RealisticDecay", RD.ToString());   
         }
+
+        public static void WriteNBody(bool NB) // 1.6.0 NBody
+        {
+                ConfigNode Data = SettingData;
+                ConfigNode SimSet = Data.GetNode("SIMULATION");
+                SimSet.SetValue("NBodySimulation", NB.ToString());
+        }
+
+        public static void WriteNBodyConics(bool NBC) // 1.6.0 NBody
+        {
+            ConfigNode Data = SettingData;
+            ConfigNode SimSet = Data.GetNode("SIMULATION");
+            SimSet.SetValue("NBodySimulationConics", NBC.ToString());
+        }
+
         public static void Write24H(bool H24)
         {
             ConfigNode Data = SettingData;
@@ -107,6 +122,23 @@ namespace WhitecatIndustries
             bool RD = bool.Parse(SimSet.GetValue("RealisticDecay"));
             return RD;
         }
+
+        public static bool ReadNB() // 1.6.0 NBody
+        {
+            ConfigNode Data = SettingData;
+            ConfigNode SimSet = Data.GetNode("SIMULATION");
+            bool NB = bool.Parse(SimSet.GetValue("NBodySimulation"));
+            return NB;
+        }
+
+        public static bool ReadNBC() // 1.6.0 NBody Conics
+        {
+            ConfigNode Data = SettingData;
+            ConfigNode SimSet = Data.GetNode("SIMULATION");
+            bool NBC = bool.Parse(SimSet.GetValue("NBodySimulationConics"));
+            return NBC;
+        }
+
 
         public static bool Read24Hr()
         {
