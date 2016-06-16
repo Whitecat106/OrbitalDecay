@@ -220,6 +220,19 @@ namespace WhitecatIndustries
             }
         }
 
+        public static bool CheckVesselStateOrbEsc(Vessel vessel)
+        {
+            if (vessel.situation == Vessel.Situations.ORBITING)
+            {
+                return true;
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
         public static bool CheckVesselStateActive(Vessel vessel)
         {
             if (vessel.situation == Vessel.Situations.ORBITING && vessel == FlightGlobals.ActiveVessel)
