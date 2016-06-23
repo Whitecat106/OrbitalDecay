@@ -77,6 +77,14 @@ namespace WhitecatIndustries
             SimSet.SetValue("NBodySimulationConics", NBC.ToString());
         }
 
+        public static void WriteNBodyConicsPatches(double NBCC) // 1.6.0 NBody
+        {
+            ConfigNode Data = SettingData;
+            ConfigNode SimSet = Data.GetNode("SIMULATION");
+            SimSet.SetValue("NBodySimulationConicsPatches", NBCC.ToString());
+        }
+
+
         public static void Write24H(bool H24)
         {
             ConfigNode Data = SettingData;
@@ -139,6 +147,13 @@ namespace WhitecatIndustries
             return NBC;
         }
 
+        public static double ReadNBCC() // 1.6.0 NBody Conics
+        {
+            ConfigNode Data = SettingData;
+            ConfigNode SimSet = Data.GetNode("SIMULATION");
+            double NBCC = double.Parse(SimSet.GetValue("NBodySimulationConicsPatches"));
+            return NBCC;
+        }
 
         public static bool Read24Hr()
         {

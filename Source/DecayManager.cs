@@ -127,9 +127,12 @@ namespace WhitecatIndustries
 
         public void UpdateActiveVesselInformation(Vessel vessel)
         {
-            if (vessel == FlightGlobals.ActiveVessel)
+            if (HighLogic.LoadedScene != GameScenes.EDITOR) // 1.6.0 Fixes VAB Rightclick errors
             {
-                VesselData.UpdateActiveVesselData(vessel);
+                if (vessel == FlightGlobals.ActiveVessel)
+                {
+                    VesselData.UpdateActiveVesselData(vessel);
+                }
             }
         }
 
@@ -636,15 +639,48 @@ namespace WhitecatIndustries
 
         }
 
+        public static bool CheckNBodyAltitude(Vessel vessel)
+        {
+            bool BeyondSafeArea = false;
+
+            if (Math.Abs(vessel.orbitDriver.orbit.altitude) > (2.0 * vessel.orbitDriver.orbit.referenceBody.Radius))
+            {
+                BeyondSafeArea = true;
+            }
+
+            return BeyondSafeArea;
+        }
+
 
         public static void RealisticDecaySimulator(Vessel vessel) // 1.4.0 Cleanup
         {
             Orbit orbit = vessel.orbitDriver.orbit;
             CelestialBody body = orbit.referenceBody;
 
+            if (Settings.ReadNB() && CheckNBodyAltitude(vessel))
+            {
+                if (vessel.situation == Vessel.Situations.ORBITING)
+                {
+                    /*
+                    print("Pos: " + vessel.orbitDriver.orbit.pos);
+                    print("PosAtUT: " + vessel.orbitDriver.orbit.getPositionAtUT(HighLogic.CurrentGame.UniversalTime));
+                    print("PosAlternate: " + vessel.orbitDriver.orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime));
+                    print("DifferenceBetween Pos & PosAlt: " + (vessel.orbitDriver.orbit.pos - vessel.orbitDriver.orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime)));
+
+                    print("Vel: " + vessel.orbitDriver.orbit.vel.magnitude);
+                    print("VelAt: " + vessel.orbitDriver.orbit.getOrbitalSpeedAt(HighLogic.CurrentGame.UniversalTime));
+                    print("VelAtAlt: " + vessel.orbitDriver.orbit.getOrbitalSpeedAtRelativePos(vessel.orbitDriver.orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime)));
+
+                    print("Energy: " + vessel.orbitDriver.orbit.orbitalEnergy);
+                    print("Energy Calculated: " + (((Math.Pow(vessel.orbit.vel.magnitude, 2.0)) / 2.0) - (vessel.orbitDriver.orbit.referenceBody.gravParameter / (vessel.orbitDriver.orbit.altitude + vessel.orbit.referenceBody.Radius))));
+                    */
+
+                    NBodyManager.ManageVessel(vessel); // 1.6.0 N-Body master reference 
+                }
+            }
+
             if (CheckReferenceBody(vessel))
             {
-
                 RealisticGravitationalPertubationDecay(vessel); // 1.5.0
                 RealisticRadiationDragDecay(vessel); // 1.5.0 Happens everywhere now
                 RealisticYarkovskyEffectDecay(vessel); // 1.5.0 // Partial, full for 1.6.0
@@ -886,6 +922,7 @@ namespace WhitecatIndustries
             VesselData.UpdateVesselSMA(vessel, VesselData.FetchSMA(vessel) - (-1.0 * YarkovskyEffect.FetchDeltaSMA(vessel)));
         }
 
+
         #endregion
 
         #region Old Stock 
@@ -1043,7 +1080,9 @@ namespace WhitecatIndustries
                             if ((p.physicalSignificance == Part.PhysicalSignificance.FULL) &&
                                 (p.Rigidbody != null))
                             {
+                                // NBody Active
                                 // p.Rigidbody.AddForce(Vector3d.back * (decayForce)); // 1.5.0
+                                
                             }
                         }
 
@@ -1060,6 +1099,8 @@ namespace WhitecatIndustries
                     {
                         if (vessel.vesselType != VesselType.EVA)
                         {
+                            NBodyManager.ManageVessel(vessel); // 1.6.0 NBody
+
                             VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
                             CatchUpOrbit(vessel);
                         }
@@ -1327,6 +1368,16 @@ namespace WhitecatIndustries
         {
             double DecayRate = YarkovskyEffect.FetchDeltaSMA(vessel);
             return DecayRate;
+        }
+
+        public static double DecayRateNBodyPerturbation(Vessel vessel)
+        {
+            double decayRate = 0;
+            //decayRate = NBodyManager.CalculateSMA(vessel, vessel.orbitDriver.orbit.getOrbitalSpeedAtRelativePos(vessel.orbitDriver.orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime)), HighLogic.CurrentGame.UniversalTime, 1.0);
+            
+            // Work this out.
+
+            return decayRate;
         }
 
         public static double DecayRateTotal(Vessel vessel)

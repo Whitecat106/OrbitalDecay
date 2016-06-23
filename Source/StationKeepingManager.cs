@@ -126,7 +126,7 @@ namespace WhitecatIndustries
                 // Add Part Module Checks Here // Maybe 1.6.0 
 
 
-                if (ConnectionToVessel = false)
+                if (ConnectionToVessel == false)
                 {
                     SignalCheck = false;
                     ScreenMessages.PostScreenMessage("Warning: " + vessel.vesselName + " has no connection to send Station Keeping command!");

@@ -38,8 +38,9 @@ namespace WhitecatIndustries
     {
         private static int currentTab = 0;
         private static string[] tabs = { "Vessels", "Settings" }; 
-        private static Rect windowPosition = new Rect(0, 0, 300, 400);
-        private static Rect subwindowPosition = new Rect(0, 0, 450, 150);
+        private static Rect MainwindowPosition = new Rect(0, 0, 300, 400);
+        private static Rect DecayBreakdownwindowPosition = new Rect(0, 0, 450, 150);
+        private static Rect NBodyManagerwindowPosition = new Rect(0, 0, 450, 150);
         private static GUIStyle windowStyle = new GUIStyle(HighLogic.Skin.window);
         private static Color tabUnselectedColor = new Color(0.0f, 0.0f, 0.0f);
         private static Color tabSelectedColor = new Color(0.0f, 0.0f, 0.0f);
@@ -50,7 +51,9 @@ namespace WhitecatIndustries
         public static ApplicationLauncherButton ToolbarButton = null;
 
         public static bool Visible = false;
-        public static bool SubVisible = false;
+        public static bool DecayBreakdownVisible = false;
+        public static bool NBodyBreakdownVisible = false;
+
         public static Texture launcher_icon = null;
 
         Vector2 scrollPosition1 = Vector2.zero;
@@ -92,7 +95,8 @@ namespace WhitecatIndustries
             ApplicationLauncher.Instance.RemoveModApplication(ToolbarButton);
             ToolbarButton = null;
             Visible = false;
-            SubVisible = false;
+            DecayBreakdownVisible = false;
+            NBodyBreakdownVisible = false;
         }
 
         private void GuiOn()
@@ -103,24 +107,29 @@ namespace WhitecatIndustries
         private void GuiOff()
         {
             Visible = false;
-            SubVisible = false;
+            DecayBreakdownVisible = false;
+            NBodyBreakdownVisible = false;
         }
 
         public void OnGUI()
         {
             if (Visible)
             {
-                windowPosition = GUILayout.Window(id, windowPosition, MainWindow, "Orbital Decay Manager", windowStyle);
+                MainwindowPosition = GUILayout.Window(id, MainwindowPosition, MainWindow, "Orbital Decay Manager", windowStyle);
             }
-            if (SubVisible)
+            if (DecayBreakdownVisible)
             {
-                subwindowPosition = GUILayout.Window(8989, subwindowPosition, DecayBreakdownWindow, "Orbital Decay Breakdown Display", windowStyle);
+                DecayBreakdownwindowPosition = GUILayout.Window(8989, DecayBreakdownwindowPosition, DecayBreakdownWindow, "Orbital Decay Breakdown Display", windowStyle);
+            }
+            if (NBodyBreakdownVisible)
+            {
+                NBodyManagerwindowPosition = GUILayout.Window(8988, NBodyManagerwindowPosition, NBodyManagerWindow, "Orbital Decay N-Body Manager", windowStyle);
             }
         }
 
         public void MainWindow(int windowID)
         {      
-                if (GUI.Button(new Rect(windowPosition.width - 22, 3, 19, 19), "x"))
+                if (GUI.Button(new Rect(MainwindowPosition.width - 22, 3, 19, 19), "x"))
                 {
                     if (ToolbarButton != null)
                         ToolbarButton.toggleButton.Value = false;
@@ -153,8 +162,8 @@ namespace WhitecatIndustries
                 }
                 GUILayout.EndVertical();
                 GUI.DragWindow();
-                windowPosition.x = Mathf.Clamp(windowPosition.x, 0f, Screen.width - windowPosition.width);
-                windowPosition.y = Mathf.Clamp(windowPosition.y, 0f, Screen.height - windowPosition.height);
+                MainwindowPosition.x = Mathf.Clamp(MainwindowPosition.x, 0f, Screen.width - MainwindowPosition.width);
+                MainwindowPosition.y = Mathf.Clamp(MainwindowPosition.y, 0f, Screen.height - MainwindowPosition.height);
             }
 
         public void InformationTab()
@@ -246,9 +255,18 @@ namespace WhitecatIndustries
                         if (GUILayout.Button("Toggle Decay Rate Breakdown")) // Display a new window here?
                         {
                             subwindowVessel = vessel;
-                            SubVisible = !SubVisible;
+                            DecayBreakdownVisible = !DecayBreakdownVisible;
                         }
 
+                        if (Settings.ReadNB())
+                        {
+                            GUILayout.Space(2);
+                            if (GUILayout.Button("Toggle NBody Breakdown")) // New Window for NBody
+                            {
+                                subwindowVessel = vessel;
+                                NBodyBreakdownVisible = !NBodyBreakdownVisible;
+                            }
+                        }
                         GUILayout.Space(2);
 
                         double TimeUntilDecayInUnits = 0.0;
@@ -381,6 +399,20 @@ namespace WhitecatIndustries
 
             var DecayDifficulty = Settings.ReadDecayDifficulty();
             var ResourceDifficulty = Settings.ReadResourceRateDifficulty();
+            var NBody = Settings.ReadNB();
+
+            var NBodyText = ""; // 1.6.0 N-Body 
+            
+            if (Settings.ReadNB())
+            {
+                NBodyText = "Disable N-Body Perturbations";
+            }
+
+            else
+            {
+                NBodyText = "Enable N-Body Perturbations";
+            }
+            
 
             GUILayout.Space(2);
             if (GUILayout.Button("Toggle Kerbin Day (6 hour) / Earth Day (24 hour)"))
@@ -446,41 +478,6 @@ namespace WhitecatIndustries
             GUILayout.Space(2);
             GUILayout.Label("____________________________________");
             GUILayout.Space(3);
-
-            /*scrollPosition3 = GUILayout.BeginScrollView(scrollPosition3, GUILayout.Width(290), GUILayout.Height(100));
-            for (int i = 0; i < PartResourceLibrary.Instance.resourceDefinitions.ToList().Count; i++)
-            {
-                string Resource = PartResourceLibrary.Instance.resourceDefinitions.ToList().ElementAt(i).name;
-                if (PartResourceLibrary.Instance.resourceDefinitions.ToList().ElementAt(i).resourceTransferMode != ResourceTransferMode.NONE &&
-                    PartResourceLibrary.Instance.resourceDefinitions.ToList().ElementAt(i).resourceFlowMode != ResourceFlowMode.ALL_VESSEL &&
-                    PartResourceLibrary.Instance.resourceDefinitions.ToList().ElementAt(i).resourceFlowMode != ResourceFlowMode.NO_FLOW &&
-                    (Resource != "EVA Propellant" && Resource != "Ore" && Resource != "ElectricCharge" && Resource != "IntakeAir"))
-                {
-                    GUILayout.Label("Resource Name: " + Resource);
-                    GUILayout.Space(3);
-
-                    if (GUILayout.Button("Set as Station Keeping Resource"))
-                    {
-                        Settings.WriteStatKeepResource(Resource);
-                        for (int j = 0; j < FlightGlobals.Vessels.Count; j++)
-                        {
-                            Vessel vessel = FlightGlobals.Vessels.ElementAt(j);
-                            if (vessel.situation == Vessel.Situations.ORBITING && vessel.vesselType != VesselType.SpaceObject && vessel.vesselType != VesselType.Unknown)
-                            {
-                                //VesselData.UpdateVesselFuel(vessel, ResourceManager.GetResources(vessel, Resource));
-                            }
-                        }
-                        ScreenMessages.PostScreenMessage("Station Keeping Resource set to: " + Resource);
-                    }
-                    GUILayout.Space(3);
-                }
-            }
-            GUILayout.EndScrollView();
-            GUILayout.Label("Note: Changing resources requires switching to each Station Keeping vessel");
-            GUILayout.Space(2);
-            GUILayout.Label("____________________________________");
-            GUILayout.Space(3);
-            */
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             MultiplierValue2 = GUILayout.HorizontalSlider(MultiplierValue2, 0.5f, 50.0f);
             GUILayout.Space(2);
@@ -495,15 +492,68 @@ namespace WhitecatIndustries
                 ScreenMessages.PostScreenMessage("Resource drain rate multiplier: " + ((MultiplierValue2 / 5).ToString("F1")));
             }
 
+            GUILayout.Space(2);
+
+            
+            if (GUILayout.Button(NBodyText))
+            {
+                Settings.WriteNBody(!NBody);
+            }
+            
+
             GUILayout.EndVertical();
         }
 
+
+        public void NBodyManagerWindow(int id) // 1.6.0 
+        {
+            if (GUI.Button(new Rect(NBodyManagerwindowPosition.width - 22, 3, 19, 19), "x"))
+            {
+                if (NBodyBreakdownVisible != null)
+                    NBodyBreakdownVisible = false;
+            }
+            GUILayout.BeginVertical();
+            GUILayout.Space(10);
+            try
+            {
+                Vessel vessel = subwindowVessel;
+
+                GUILayout.Label("Vessel: " + vessel.GetName());
+                GUILayout.Space(4); // Make new parsing here for vel formatting 
+                GUILayout.Label("Total Change in velocity from external forces: " + NBodyManager.GetMomentaryDeltaV(vessel, HighLogic.CurrentGame.UniversalTime).magnitude.ToString("F9") + "m/s");
+                GUILayout.Space(2);
+                GUILayout.Label("Change in velocity from external forces (x - axis): " + NBodyManager.GetMomentaryDeltaV(vessel, HighLogic.CurrentGame.UniversalTime).x.ToString("F9") + "m/s");
+                GUILayout.Space(2);
+                GUILayout.Label("Change in velocity from external forces (y - axis): " + NBodyManager.GetMomentaryDeltaV(vessel, HighLogic.CurrentGame.UniversalTime).y.ToString("F9") + "m/s");
+                GUILayout.Space(2);
+                GUILayout.Label("Change in velocity from external forces (z - axis): " + NBodyManager.GetMomentaryDeltaV(vessel, HighLogic.CurrentGame.UniversalTime).z.ToString("F9")+ "m/s");
+                GUILayout.Space(2);
+               
+
+            }
+
+            catch (ArgumentNullException)
+            {
+                GUILayout.Label("WARNING: Error Detected");
+                GUILayout.Space(2);
+                GUILayout.Label("Please post an error report in the Orbital Decay Forum. This is an N-Body problem.");
+                GUILayout.Space(2);
+                GUILayout.Label("Thanks, Whitecat106");
+            }
+            GUILayout.EndVertical();
+            GUI.DragWindow();
+            //NBodyManagerwindowPosition.x = Mathf.Clamp(MainwindowPosition.x, 0f, Screen.width - MainwindowPosition.width);
+            //NBodyManagerwindowPosition.y = Mathf.Clamp(MainwindowPosition.y, 0f, Screen.height - MainwindowPosition.height);
+
+        }
+
+
         public void DecayBreakdownWindow(int id)
         {
-            if (GUI.Button(new Rect(subwindowPosition.width - 22, 3, 19, 19), "x"))
+            if (GUI.Button(new Rect(DecayBreakdownwindowPosition.width - 22, 3, 19, 19), "x"))
             {
-                if (SubVisible != null)
-                    SubVisible = false;
+                if (DecayBreakdownVisible != null)
+                    DecayBreakdownVisible = false;
             }
             GUILayout.BeginVertical();
             GUILayout.Space(10);
@@ -545,8 +595,8 @@ namespace WhitecatIndustries
             }
             GUILayout.EndVertical();
             GUI.DragWindow();
-            windowPosition.x = Mathf.Clamp(windowPosition.x, 0f, Screen.width - windowPosition.width);
-            windowPosition.y = Mathf.Clamp(windowPosition.y, 0f, Screen.height - windowPosition.height);
+            //MainwindowPosition.x = Mathf.Clamp(MainwindowPosition.x, 0f, Screen.width - MainwindowPosition.width);
+            //MainwindowPosition.y = Mathf.Clamp(MainwindowPosition.y, 0f, Screen.height - MainwindowPosition.height);
         }
 
         public string FormatDecayRateToString(double DecayRate)
