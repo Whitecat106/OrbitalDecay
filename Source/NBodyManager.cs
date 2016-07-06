@@ -1,4 +1,29 @@
-﻿using System;
+﻿/*
+ * Whitecat Industries Orbital Decay for Kerbal Space Program. 
+ * 
+ * Written by Whitecat106 (Marcus Hehir).
+ * 
+ * Kerbal Space Program is Copyright (C) 2013 Squad. See http://kerbalspaceprogram.com/. This
+ * project is in no way associated with nor endorsed by Squad.
+ * 
+ * This code is licensed under the Attribution-NonCommercial-ShareAlike 3.0 (CC BY-NC-SA 3.0)
+ * creative commons license. See <http://creativecommons.org/licenses/by-nc-sa/3.0/legalcode>
+ * for full details.
+ * 
+ * Attribution — You are free to modify this code, so long as you mention that the resulting
+ * work is based upon or adapted from this code.
+ * 
+ * Non-commercial - You may not use this work for commercial purposes.
+ * 
+ * Share Alike — If you alter, transform, or build upon this work, you may distribute the
+ * resulting work only under the same or similar license to the CC BY-NC-SA 3.0 license.
+ * 
+ * Note that Whitecat Industries is a ficticious entity created for entertainment
+ * purposes. It is in no way meant to represent a real entity. Any similarity to a real entity
+ * is purely coincidental.
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -53,7 +78,7 @@ namespace WhitecatIndustries
             GameEvents.onTimeWarpRateChanged.Remove(TimewarpShift);
         }
 
-        public void FixedUpdate()//
+        public void FixedUpdate()// 1.7.0 change to FixedUpdate
         {
 
             if (Settings.ReadNB() == true)
@@ -127,7 +152,7 @@ namespace WhitecatIndustries
 
             foreach (CelestialBody Body in FlightGlobals.Bodies)
             {
-                if (ReferenceBody.HasChild(Body) || ReferenceBody.HasParent(Body))
+                if ((ReferenceBody.HasChild(Body) || ReferenceBody.HasParent(Body)) && ReferenceBody != Sun.Instance.sun) // No sun for now
                 {
                     InfluencingBodies.Add(Body);
                 }
@@ -170,20 +195,34 @@ namespace WhitecatIndustries
             foreach (CelestialBody Body in InfluencingBodiesV(vessel))
             {
                 double VesselMass = VesselData.FetchMass(vessel);
+                if (VesselMass == 0) // Incase vesselData hasnt caught up! 
+                {
+                    VesselMass = vessel.GetTotalMass() * 1000;
+                }
+
                 double VesselMNA = vessel.orbitDriver.orbit.GetMeanAnomaly(vessel.orbitDriver.orbit.E, time);
                 double InfluencingForce = 0;
                 double BodyMass = Body.Mass;
                 Vector3d BodyPosition = new Vector3d();
-                if (vessel.orbitDriver.orbit.referenceBody == Body || Body == Sun.Instance.sun)
+                if (vessel.orbitDriver.orbit.referenceBody == Body || (vessel.orbitDriver.orbit.referenceBody == Body && Body == Sun.Instance.sun))
                 {
                     BodyPosition = new Vector3d(0, 0, 0);
                 }
                 else
                 {
-                    BodyPosition = Body.orbit.getRelativePositionAtUT(time);
+                    if (Body == Sun.Instance.sun)
+                    {
+                        BodyPosition = new Vector3d(0, 0, 0) ;
+                    }
+                    else
+                    {
+                        BodyPosition = Body.orbit.getRelativePositionAtUT(time);
+                    }
                 }
                 double DistanceToVessel = Vector3d.Distance(BodyPosition, vessel.orbitDriver.orbit.getRelativePositionAtUT(time)); //
+
                 //print("Body " + Body.name + " distance to " + vessel.name + " : " + DistanceToVessel);
+
                 double BodyMNA = 0;
 
                 try
@@ -197,26 +236,36 @@ namespace WhitecatIndustries
 
                 double MNADifference = UtilMath.RadiansToDegrees(DifferenceBetweenMNA(VesselMNA, BodyMNA)); // Try this!
 
+                 // Bring the sun back eventually!
                 if (Body == Sun.Instance.sun)
                 {
                     MNADifference = 90.0;
                 }
+                
 
                 InfluencingForce = (GravitationalConstant * BodyMass * VesselMass) / (DistanceToVessel * DistanceToVessel);
                 InfluencingForce = InfluencingForce * Math.Sin(MNADifference - 90.0);
 
                 Vector3d InfluencingAccelerationBodyDirectionVector = new Vector3d();
-                if (vessel.orbitDriver.orbit.referenceBody == Body || Body == Sun.Instance.sun)
+                if (vessel.orbitDriver.orbit.referenceBody == Body || (vessel.orbitDriver.orbit.referenceBody == Body && Body == Sun.Instance.sun))
                 {
                     InfluencingAccelerationBodyDirectionVector = new Vector3d(0, 0, 0);
                 }
                 else
                 {
-                    InfluencingAccelerationBodyDirectionVector = Body.orbit.getRelativePositionAtUT(time);
+                    if (Body == Sun.Instance.sun)
+                    {
+                        InfluencingAccelerationBodyDirectionVector = Body.position;
+                    }
+                    else
+                    {
+                        InfluencingAccelerationBodyDirectionVector = Body.orbit.getRelativePositionAtUT(time);
+                    }
                 }
                 Vector3d VesselPositionVector = vessel.orbitDriver.orbit.getRelativePositionAtUT(time);
                 Vector3d InfluencingAccelerationVector = (new Vector3d(-InfluencingAccelerationBodyDirectionVector.x + VesselPositionVector.x, -InfluencingAccelerationBodyDirectionVector.y + VesselPositionVector.y, -InfluencingAccelerationBodyDirectionVector.z + VesselPositionVector.z)) * ((InfluencingForce / VesselMass));
 
+                // Manage this with timewarp? 
                 InfluencingAccelerations.Add(InfluencingAccelerationVector);
 
             }
@@ -299,7 +348,10 @@ namespace WhitecatIndustries
                 FinalVelocityVector = FinalVelocityVector + (Acceleration);
             }
 
-            SetOrbit(vessel, FinalVelocityVector);
+            if (vessel.vesselType != VesselType.SpaceObject || vessel.vesselType != VesselType.Unknown) // For the moment
+            {
+                SetOrbit(vessel, FinalVelocityVector);
+            }
         }
 
         #endregion
@@ -699,6 +751,7 @@ namespace WhitecatIndustries
 
             // Debuging // 
             #region Debug Values
+            /*
             print("DeltaV Vector: " + FinalVelocity);
             print("DeltaV Scalar: " + FinalVelocity.magnitude);
             print("OLDSMA: " + vessel.orbitDriver.orbit.semiMajorAxis);
@@ -709,8 +762,9 @@ namespace WhitecatIndustries
             print("NEWLAN: " + orbit.LAN);//CalculateLPE(vessel, oldOrbit.getOrbitalSpeedAtRelativePos(oldOrbit.getRelativePositionAtUT(time)) * Vector3d.one + FinalVelocity, time, 1.0));
             print("OLDLpe: " + vessel.orbitDriver.orbit.argumentOfPeriapsis);
             print("NEWLpe: " + orbit.argumentOfPeriapsis); // CalculateLPE(vessel, oldOrbit.getOrbitalSpeedAtRelativePos(oldOrbit.getRelativePositionAtUT(time)) * Vector3d.one + FinalVelocity, time, 1.0));
-            # endregion
-
+           */
+           # endregion
+            
             var newBody = vessel.orbitDriver.orbit.referenceBody;
 
             if (newBody != oldBody)
@@ -720,74 +774,104 @@ namespace WhitecatIndustries
                 VesselData.UpdateBody(vessel, newBody);
             }
 
-            VesselOrbitalPredictions.Remove(vessel);
-            VesselOrbitalPredictions.Add(vessel, orbit);
+            //VesselOrbitalPredictions.Remove(vessel);
+            //VesselOrbitalPredictions.Add(vessel, orbit);
 
             return orbit;
         }
 
-        #region depreciated non state vectors
-        public static double CalculateInclination(Vessel vessel, Vector3d FinalVelocity, double time, double timeinterval)
+        #region non state vector components
+        public static double CalculateInclination(Vector3d position, Vector3d FinalVelocity, double time, double timeinterval, Vessel vessel, CelestialBody body)
         {
             double Inc = 0;
-            Orbit NextOrbit = new Orbit();
-            NextOrbit.UpdateFromStateVectors(vessel.orbitDriver.orbit.getRelativePositionAtUT(time), FinalVelocity, vessel.orbitDriver.orbit.referenceBody, time);
+            double Altitude = 0;
 
+            Vector3d BodyPosition = new Vector3d();
 
+            if (vessel.orbitDriver.orbit.referenceBody == body && body == Sun.Instance.sun)
+            {
+                BodyPosition = new Vector3d(0, 0, 0);
+            }
+            else
+            {
+                BodyPosition = body.orbit.getRelativePositionAtUT(time);
+            }
+            Altitude = Vector3d.Distance(BodyPosition, position);
 
-            // Do this
+            double MomentOfInertia = Math.Pow(position.magnitude, 2.0) * VesselData.FetchMass(vessel);
+            Vector3d AngularVelocity = Vector3d.Cross(position, FinalVelocity) / (Math.Pow(position.magnitude, 2.0));
+            Vector3d AngularMomentumVector = AngularVelocity * MomentOfInertia;
+            Vector3d NeutralVector = new Vector3d(0, 1, 0); // KSP Y and Z flipped? Maybe needs work on the Acceleration over time vector?
+            Vector3d AscendingNodeVector = Vector3d.Cross(AngularMomentumVector, NeutralVector); // Maybe this
+
+            Inc = Math.Acos((AngularMomentumVector.magnitude * NeutralVector.magnitude) / AngularMomentumVector.magnitude);
+
 
             return Inc;
         }
 
-        public static double CalculateSMA(Vessel vessel, Vector3d FinalVelocity, double time, double timeinterval)
+        public static double CalculateSMA(Vector3d position, Vector3d FinalVelocity, double time, double timeinterval, CelestialBody body, Vessel vessel)
         {
             double SMA = 0;
-            double Altitude = vessel.orbitDriver.orbit.altitude + vessel.orbitDriver.orbit.referenceBody.Radius;
-            double CalculationEnergyError = (((Math.Pow(vessel.orbitDriver.orbit.vel.magnitude, 2.0)) / 2.0) - (vessel.orbitDriver.orbit.referenceBody.gravParameter / Altitude)) - vessel.orbitDriver.orbit.orbitalEnergy;
+            double Altitude = 0;
+            Vector3d BodyPosition = new Vector3d();
+
+            if (vessel.orbitDriver.orbit.referenceBody == body || body == Sun.Instance.sun)
+            {
+                BodyPosition = new Vector3d(0, 0, 0);
+            }
+            else
+            {
+                BodyPosition = body.orbit.getRelativePositionAtUT(time);
+            }
+            Altitude = Vector3d.Distance(BodyPosition, position);
 
             double ForwardVelocity = FinalVelocity.magnitude;
-            double NewEnergy = (((Math.Pow(ForwardVelocity, 2.0)) / 2.0) - (vessel.orbitDriver.orbit.referenceBody.gravParameter / Altitude)) - CalculationEnergyError;
+            double NewEnergy = (((Math.Pow(ForwardVelocity, 2.0)) / 2.0) - (body.gravParameter / Altitude));
 
-            SMA = ((-(vessel.orbitDriver.orbit.referenceBody.gravParameter) / NewEnergy) / 2.0);
+            SMA = ((-(body.gravParameter) / NewEnergy) / 2.0);
 
             return Math.Abs(SMA);
         }
 
-        public static double CalculateEccentricity(Vessel vessel, Vector3d FinalVelocity, double time, double timeinterval)
+        public static double CalculateEccentricity(Vector3d position, Vector3d FinalVelocity, double time, double timeinterval, CelestialBody body, Vessel vessel)
         {
             double Eccentricity = 0;
 
             double ForwardVelocity = FinalVelocity.magnitude;
-            double Altitude = vessel.orbitDriver.orbit.altitude + vessel.orbitDriver.orbit.referenceBody.Radius;
-            double NewEnergy = ((Math.Pow(ForwardVelocity, 2.0)) / 2.0) - (vessel.orbitDriver.orbit.referenceBody.gravParameter / Altitude);
-            double CalculationEnergyError = (((Math.Pow(vessel.orbitDriver.orbit.vel.magnitude, 2.0)) / 2.0) - (vessel.orbitDriver.orbit.referenceBody.gravParameter / Altitude)) + vessel.orbitDriver.orbit.orbitalEnergy;
+            double Altitude = 0;
+            Vector3d BodyPosition = new Vector3d();
+
+            if (vessel.orbitDriver.orbit.referenceBody == body && body == Sun.Instance.sun) // work out the sun effect 
+            {
+                BodyPosition = new Vector3d(0, 0, 0); // Fix this for eccentricity
+            }
+            else
+            {
+                BodyPosition = body.orbit.getRelativePositionAtUT(time);
+            }
+            Altitude = Vector3d.Distance(BodyPosition, position);
+
+            double NewEnergy = ((Math.Pow(ForwardVelocity, 2.0)) / 2.0) - (body.gravParameter / Altitude);
+
+            double MomentOfInertia = Math.Pow(position.magnitude, 2.0) * VesselData.FetchMass(vessel);
+            Vector3d AngularVelocity = Vector3d.Cross(position, FinalVelocity) / (Math.Pow(position.magnitude, 2.0));
+            Vector3d AngularMomentumVector = AngularVelocity * MomentOfInertia; 
 
 
-            Orbit NextOrbit = new Orbit();
-            NextOrbit.UpdateFromStateVectors(vessel.orbitDriver.orbit.getRelativePositionAtUT(time), FinalVelocity, vessel.orbitDriver.orbit.referenceBody, time);
-
-            double MomentOfInertia = Math.Pow(vessel.orbitDriver.orbit.pos.magnitude, 2.0) * VesselData.FetchMass(vessel);
-            Vector3d AngularVelocity = Vector3d.Cross(vessel.orbitDriver.orbit.getRelativePositionAtUT(time), FinalVelocity) / (Math.Pow(vessel.orbitDriver.orbit.getRelativePositionAtUT(time).magnitude, 2.0));
-            Vector3d AngularMomentumVector = AngularVelocity * MomentOfInertia; // Maybe this if not then calculate
-
-
-            Eccentricity = Math.Sqrt((1.0 + ((2.0 * (NewEnergy - CalculationEnergyError) * Math.Pow(AngularMomentumVector.magnitude, 2.0)) / (Math.Pow(vessel.orbitDriver.orbit.referenceBody.gravParameter, 2.0)))));
+            Eccentricity = Math.Sqrt((1.0 + ((2.0 * (NewEnergy) * Math.Pow(AngularMomentumVector.magnitude, 2.0)) / (Math.Pow(vessel.orbitDriver.orbit.referenceBody.gravParameter, 2.0)))));
 
             return Eccentricity;
         }
 
-        public static double CalculateLAN(Vessel vessel, Vector3d FinalVelocity, double time, double timeinterval)
+        public static double CalculateLAN(Vector3d position, Vector3d FinalVelocity, double time, double timeinterval, Vessel vessel)
         {
             double LAN = 0;
 
-            Orbit NextOrbit = new Orbit();
-            NextOrbit.UpdateFromStateVectors(vessel.orbitDriver.orbit.pos, FinalVelocity, vessel.orbitDriver.orbit.referenceBody, time);
+            double MomentOfInertia = Math.Pow(position.magnitude, 2.0) * VesselData.FetchMass(vessel);
+            Vector3d AngularVelocity = Vector3d.Cross(position, FinalVelocity) / (Math.Pow(position.magnitude, 2.0));
 
-            double MomentOfInertia = Math.Pow(vessel.orbitDriver.orbit.getRelativePositionAtUT(time).magnitude, 2.0) * VesselData.FetchMass(vessel);
-            Vector3d AngularVelocity = Vector3d.Cross(vessel.orbitDriver.orbit.getRelativePositionAtUT(time), FinalVelocity) / (Math.Pow(vessel.orbitDriver.orbit.getRelativePositionAtUT(time).magnitude, 2.0));
-
-            Vector3d AngularMomentumVector = AngularVelocity * MomentOfInertia; // Maybe this if not then calculate
+            Vector3d AngularMomentumVector = AngularVelocity * MomentOfInertia;
 
             Vector3d NeutralVector = new Vector3d(0, 0, 1);
 
@@ -807,24 +891,21 @@ namespace WhitecatIndustries
             return LAN;
         }
 
-        public static double CalculateLPE(Vessel vessel, Vector3d FinalVelocity, double time, double timeinterval)
+        public static double CalculateLPE(Vector3d position, Vector3d FinalVelocity, double time, double timeinterval, CelestialBody body, Vessel vessel)
         {
             double LPE = 0;
 
-            Orbit NextOrbit = new Orbit();
-            NextOrbit.UpdateFromStateVectors(vessel.orbitDriver.orbit.getRelativePositionAtUT(time), FinalVelocity, vessel.orbitDriver.orbit.referenceBody, time);
-
-
-            double MomentOfInertia = Math.Pow(vessel.orbitDriver.orbit.getRelativePositionAtUT(time).magnitude, 2.0) * VesselData.FetchMass(vessel);
-            Vector3d AngularVelocity = Vector3d.Cross(vessel.orbitDriver.orbit.getRelativePositionAtUT(time), FinalVelocity) / (Math.Pow(vessel.orbitDriver.orbit.getRelativePositionAtUT(time).magnitude, 2.0));
+            double MomentOfInertia = Math.Pow(position.magnitude, 2.0) * VesselData.FetchMass(vessel);
+            Vector3d AngularVelocity = Vector3d.Cross(position, FinalVelocity) / (Math.Pow(position.magnitude, 2.0));
             Vector3d AngularMomentumVector = AngularVelocity * MomentOfInertia; // Maybe this if not then calculate
 
             Vector3d NeutralVector = new Vector3d(0, 0, 1);
             Vector3d AscendingNodeVector = Vector3d.Cross(AngularMomentumVector, NeutralVector); // Maybe this 
-            Vector3d EccentricVector = NextOrbit.eccVec;
+
+            Vector3d EccentricVector = ((Vector3d.Cross(FinalVelocity, AngularMomentumVector)) / body.gravParameter) - (position / position.magnitude);
 
             LPE = Math.Acos((Vector3d.Cross(AscendingNodeVector, EccentricVector).magnitude) / (AscendingNodeVector.magnitude * EccentricVector.magnitude));
-
+             
             LPE = UtilMath.RadiansToDegrees(LPE);
             return LPE;
         }
@@ -868,16 +949,19 @@ namespace WhitecatIndustries
                 orbit = vessel.orbitDriver.orbit;
             }
 
+            var NumberOfSteps = Settings.ReadNBCC();
 
-            Vector3d FinalVelVector = new Vector3d();
-            Vector3d InitialVelVector = GetMomentaryDeltaV(vessel, HighLogic.CurrentGame.UniversalTime - TimeWarp.CurrentRate);
+            Vector3d InitialPosition = orbit.getRelativePositionAtUT(TimeAtTimewarpStart);
+            Vector3d FinalPosition = new Vector3d();
 
+            Vector3d AveragePointAtThisTime = new Vector3d(); // Create an average approximated point, force magnifications change based on the position of this point to the initial and final
 
-            if (TimeWarp.CurrentRate > 100 && TimeWarp.CurrentRate <= 1000) // Anti Lag Method
-            {
-                for (int i = 0; i < TimeWarp.CurrentRate / 10.0; i++)
+            Vector3d FinalVelVector = new Vector3d(0,0,0);
+            Vector3d InitialVelVector = GetMomentaryDeltaV(vessel, HighLogic.CurrentGame.UniversalTime - TimeWarp.CurrentRate); // Also handles non timewarp
+
+                for (int i = 0; i < NumberOfSteps; i++)
                 {
-                    List<Vector3d> InfluencingAccelerationVectors = InfluencingAccelerationsV(vessel, TimeAtTimewarpStart + i);
+                    List<Vector3d> InfluencingAccelerationVectors = InfluencingAccelerationsV(vessel, TimeAtTimewarpStart + (TimeWarp.CurrentRate/NumberOfSteps) + i); // needs work here to adjust LAN 
 
                     Vector3d FinalVelocityVector = new Vector3d();
 
@@ -887,10 +971,10 @@ namespace WhitecatIndustries
                     }
 
                     FinalVelVector = FinalVelVector + FinalVelocityVector;
-
-                    // orbit = NewCalculatedOrbit(vessel, orbit, FinalVelocityVector , TimeAtTimewarpStart + i);
                 }
-            }
+
+                #region Depreciated Timewarp Calculations
+                /*
             if (TimeWarp.CurrentRate > 1000 && TimeWarp.CurrentRate <= 10000) // Anti Lag Method
             {
                 for (int i = 0; i < TimeWarp.CurrentRate / 100.0; i++)
@@ -967,11 +1051,16 @@ namespace WhitecatIndustries
                     //orbit = NewCalculatedOrbit(vessel, orbit, FinalVelocityVector, TimeAtTimewarpStart + i);
                 }
             }
+             */
+                #endregion
 
-            FinalVelVector = InitialVelVector - FinalVelVector;
-            print("Change in delta V across timewarp duration in one second: " + FinalVelVector.magnitude);
+                FinalVelVector = InitialVelVector + FinalVelVector;
 
-            orbit = BuildOrbitFromStateVectors.BuildFromStateVectors(orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime), orbit.vel + FinalVelVector, orbit.referenceBody, HighLogic.CurrentGame.UniversalTime);
+            print("Change in delta V across timewarp duration in one second: " + FinalVelVector.magnitude); // Coming out as a NaN as of 1.1.3? 
+
+            // Change getRelPosition to final position vector as deployed above // 
+
+            orbit = BuildFromStateVectors(orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime), orbit.vel + FinalVelVector, orbit.referenceBody, HighLogic.CurrentGame.UniversalTime, vessel);
 
             // Is this actively updating the orbit? If So... why the bloody hell so?!!?!? 
             //orbit.UpdateFromStateVectors(orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime), orbit.vel + FinalVelVector, orbit.referenceBody, HighLogic.CurrentGame.UniversalTime);
@@ -1073,6 +1162,7 @@ namespace WhitecatIndustries
             {
 
                 orbit.Init();
+                orbit.UpdateFromUT(HighLogic.CurrentGame.UniversalTime);
 
                 VesselData.UpdateVesselSMA(vessel, vessel.orbitDriver.orbit.semiMajorAxis);
                 VesselData.UpdateVesselLPE(vessel, vessel.orbitDriver.orbit.argumentOfPeriapsis);
@@ -1080,31 +1170,45 @@ namespace WhitecatIndustries
                 VesselData.UpdateVesselECC(vessel, vessel.orbitDriver.orbit.eccentricity);
                 VesselData.UpdateVesselINC(vessel, vessel.orbitDriver.orbit.inclination);
             }
-            //orbit.UpdateFromUT(HighLogic.CurrentGame.UniversalTime);
+            
             CurrentProcess = false;
         }
-    }
-
-
-
-
-    public static class BuildOrbitFromStateVectors
-    {
-        public static Orbit BuildFromStateVectors(Vector3d position, Vector3d velocity, CelestialBody body, double UniversalTime)
+    
+        public static Orbit BuildFromStateVectors(Vector3d position, Vector3d velocity, CelestialBody body, double UniversalTime, Vessel vessel)
         {
-            Orbit StateVectorBuiltOrbit = new Orbit();
+            Orbit StateVectorBuiltOrbit = vessel.orbitDriver.orbit;
 
-            
-
-            
-            double NewSemiMajorAxis = 0;
-            double NewInclination = 0;
-            double NewEccentricity = 0;
-            double NewLAN = 0;
-            double NewLPE = 0;
+            double NewSemiMajorAxis = NBodyManager.CalculateSMA(position, velocity, UniversalTime, 1.0, body, vessel); //4km lower? 
+            double NewInclination = NBodyManager.CalculateInclination(position, velocity, UniversalTime, 1.0, vessel, body); // 0
+            double NewEccentricity = NBodyManager.CalculateEccentricity(position, velocity, UniversalTime, 1.0, body, vessel); // NaN
+            double NewLAN = NBodyManager.CalculateLAN(position, velocity, UniversalTime, 1.0, vessel); // 200 out?
+            double NewLPE = NBodyManager.CalculateLPE(position, velocity, UniversalTime, 1.0, body, vessel); // 230 out?
             double NewEPH = 0;
-            double NewMNA = 0; 
-            
+            double NewMNA = 0;
+
+            StateVectorBuiltOrbit.semiMajorAxis = NewSemiMajorAxis;
+            StateVectorBuiltOrbit.inclination = vessel.orbitDriver.orbit.inclination;
+            StateVectorBuiltOrbit.eccentricity = vessel.orbitDriver.orbit.eccentricity;
+            StateVectorBuiltOrbit.LAN = vessel.orbitDriver.orbit.LAN;
+            StateVectorBuiltOrbit.epoch = vessel.orbitDriver.orbit.epoch;
+            StateVectorBuiltOrbit.argumentOfPeriapsis = vessel.orbitDriver.orbit.argumentOfPeriapsis;
+            StateVectorBuiltOrbit.meanAnomaly = vessel.orbitDriver.orbit.meanAnomaly;
+            StateVectorBuiltOrbit.referenceBody = body;
+            StateVectorBuiltOrbit.meanAnomalyAtEpoch = vessel.orbitDriver.orbit.meanAnomalyAtEpoch;
+
+            if (double.IsNaN(velocity.magnitude)) // Catches vessel data lag
+            {
+                StateVectorBuiltOrbit = vessel.orbitDriver.orbit;
+            }
+
+            else
+            {
+                print("NewSMA: " + NewSemiMajorAxis);
+                print("NewINC: " + NewInclination);
+                print("NewEcc: " + NewEccentricity);
+                print("NewLAN: " + NewLAN);
+                print("NewLpe: " + NewLPE);
+            }
 
             return StateVectorBuiltOrbit;
         }

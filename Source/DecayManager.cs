@@ -152,7 +152,7 @@ namespace WhitecatIndustries
         public void QuickLoadUpdate()
         {
             VesselData.VesselInformation.ClearNodes();
-            string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/PluginData/VesselData.cfg";
+            string FilePath = KSPUtil.ApplicationRootPath + "GameData/WhitecatIndustries/Orbital Decay/Plugins/PluginData/VesselData.cfg";
             ConfigNode FileM = new ConfigNode();
             ConfigNode FileN = new ConfigNode("VESSEL");
             FileN.AddValue("name", "WhitecatsDummyVessel");
@@ -661,8 +661,9 @@ namespace WhitecatIndustries
             {
                 if (vessel.situation == Vessel.Situations.ORBITING)
                 {
+                    #region NBody debugging
                     /*
-                    print("Pos: " + vessel.orbitDriver.orbit.pos);
+                    print("Pos: " + vessel.orbitDriver.orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime));
                     print("PosAtUT: " + vessel.orbitDriver.orbit.getPositionAtUT(HighLogic.CurrentGame.UniversalTime));
                     print("PosAlternate: " + vessel.orbitDriver.orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime));
                     print("DifferenceBetween Pos & PosAlt: " + (vessel.orbitDriver.orbit.pos - vessel.orbitDriver.orbit.getRelativePositionAtUT(HighLogic.CurrentGame.UniversalTime)));
@@ -674,8 +675,9 @@ namespace WhitecatIndustries
                     print("Energy: " + vessel.orbitDriver.orbit.orbitalEnergy);
                     print("Energy Calculated: " + (((Math.Pow(vessel.orbit.vel.magnitude, 2.0)) / 2.0) - (vessel.orbitDriver.orbit.referenceBody.gravParameter / (vessel.orbitDriver.orbit.altitude + vessel.orbit.referenceBody.Radius))));
                     */
+                    #endregion 
 
-                    NBodyManager.ManageVessel(vessel); // 1.6.0 N-Body master reference 
+                      NBodyManager.ManageVessel(vessel); // 1.6.0 N-Body master reference maybe 1.7.0?
                 }
             }
 
@@ -1002,7 +1004,7 @@ namespace WhitecatIndustries
                     {
                         if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + vessel.orbitDriver.referenceBody.atmosphereDepth)
                         {
-                            TimeWarp.SetRate(0, true);
+                            TimeWarp.SetRate(0, false);
                             print("Warning: " + vessel.vesselName + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
                             ScreenMessages.PostScreenMessage("Warning: " + vessel.vesselName + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s hard atmosphere");
                             MessageDisplayed.Add(vessel, true);
@@ -1020,7 +1022,7 @@ namespace WhitecatIndustries
                     {
                         if (VesselData.FetchSMA(vessel) < vessel.orbitDriver.orbit.referenceBody.Radius + 5000)
                         {
-                            TimeWarp.SetRate(0, true);
+                            TimeWarp.SetRate(0, false);
                             print("Warning: " + vessel.vesselName + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
                             ScreenMessages.PostScreenMessage("Warning: " + vessel.vesselName + " is approaching " + vessel.orbitDriver.referenceBody.name + "'s surface");
                             MessageDisplayed.Add(vessel, true);

@@ -258,6 +258,7 @@ namespace WhitecatIndustries
                             DecayBreakdownVisible = !DecayBreakdownVisible;
                         }
 
+                         // 1.7.0 maybe?
                         if (Settings.ReadNB())
                         {
                             GUILayout.Space(2);
@@ -267,6 +268,8 @@ namespace WhitecatIndustries
                                 NBodyBreakdownVisible = !NBodyBreakdownVisible;
                             }
                         }
+                         
+
                         GUILayout.Space(2);
 
                         double TimeUntilDecayInUnits = 0.0;
@@ -403,6 +406,7 @@ namespace WhitecatIndustries
 
             var NBodyText = ""; // 1.6.0 N-Body 
             
+             // 1.7.0 maybe?
             if (Settings.ReadNB())
             {
                 NBodyText = "Disable N-Body Perturbations";
@@ -428,7 +432,8 @@ namespace WhitecatIndustries
                 }
                 
             }
-            GUILayout.Space(2);
+            /*
+            GUILayout.Space(2);            // Incompatible with NBody Decay
             if (GUILayout.Button("Toggle Planetarium Updating"))
             {
                 Settings.WritePlanetariumTracking(!Settings.ReadPT());
@@ -459,7 +464,7 @@ namespace WhitecatIndustries
                 }
 
             }
-
+            */
             GUILayout.Space(3);
             GUI.skin.label.alignment = TextAnchor.MiddleCenter;
             MultiplierValue = GUILayout.HorizontalSlider(MultiplierValue, 0.5f, 50.0f);
