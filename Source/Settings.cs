@@ -42,11 +42,24 @@ namespace WhitecatIndustries
 
         public void Start()
         {
+            CheckStockSettings();
+
             SettingData.ClearData();
             settings = ConfigNode.Load(FilePath);
             foreach (ConfigNode item in settings.nodes)
             {
                 SettingData.AddNode(item);
+            }
+        }
+
+        public void CheckStockSettings() // 1.6.0 Stock give me back my decaying orbits!!
+        {
+            if (HighLogic.LoadedSceneIsGame)
+            {
+                if (GameSettings.ORBIT_DRIFT_COMPENSATION == true)
+                {
+                    GameSettings.ORBIT_DRIFT_COMPENSATION = false;
+                }
             }
         }
 
@@ -82,6 +95,13 @@ namespace WhitecatIndustries
             ConfigNode Data = SettingData;
             ConfigNode SimSet = Data.GetNode("SIMULATION");
             SimSet.SetValue("NBodySimulationConicsPatches", NBCC.ToString());
+        }
+
+        public static void WriteNBodyBodyUpdating(bool NBB) // 1.6.0 NBody
+        {
+            ConfigNode Data = SettingData;
+            ConfigNode SimSet = Data.GetNode("SIMULATION");
+            SimSet.SetValue("NBodySimulationBodyUpdating", NBB.ToString());
         }
 
 
@@ -152,6 +172,14 @@ namespace WhitecatIndustries
             ConfigNode Data = SettingData;
             ConfigNode SimSet = Data.GetNode("SIMULATION");
             double NBCC = double.Parse(SimSet.GetValue("NBodySimulationConicsPatches"));
+            return NBCC;
+        }
+
+        public static bool ReadNBB() // 1.6.0 NBody bodies
+        {
+            ConfigNode Data = SettingData;
+            ConfigNode SimSet = Data.GetNode("SIMULATION");
+            bool NBCC = bool.Parse(SimSet.GetValue("NBodySimulationBodyUpdating"));
             return NBCC;
         }
 

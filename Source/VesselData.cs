@@ -151,6 +151,12 @@ namespace WhitecatIndustries
             }
         }
 
+        public static void OnQuickLoad() // 1.5.3 quick load fixes
+        {
+            File.ClearNodes();
+            VesselInformation.ClearNodes();
+        }
+
         public static bool CheckIfContained(Vessel vessel)
         {
             bool Contained = false;
