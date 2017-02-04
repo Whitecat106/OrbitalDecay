@@ -1,4 +1,4 @@
-﻿
+﻿/*
 // REBUILD THIS FOR 1.6.0 USING #77 Comments
 
 
@@ -26,7 +26,7 @@
  * purposes. It is in no way meant to represent a real entity. Any similarity to a real entity
  * is purely coincidental.
  */
-
+/*
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -169,7 +169,9 @@ namespace WhitecatIndustries
 
                 try
                 {
-                    BodyMNA = (Body.orbitDriver.orbit.GetMeanAnomaly(Body.orbitDriver.orbit.E, time));
+                   // BodyMNA = (Body.orbitDriver.orbit.GetMeanAnomaly(Body.orbitDriver.orbit.E, time));
+
+                    BodyMNA = OrbitalDecayUtilities.GetMeanAnomalyAtTime(Body.orbitDriver.orbit.meanAnomalyAtEpoch, Body.orbitDriver.orbit.epoch, Body.orbitDriver.orbit.period, time);
                 }
                 catch (NullReferenceException)
                 {
@@ -262,7 +264,8 @@ namespace WhitecatIndustries
 
                 try
                 {
-                    BodyMNA = (Body.orbitDriver.orbit.GetMeanAnomaly(Body.orbitDriver.orbit.E, time));
+                    BodyMNA = OrbitalDecayUtilities.GetMeanAnomalyAtTime(Body.orbitDriver.orbit.meanAnomalyAtEpoch, Body.orbitDriver.orbit.epoch, Body.orbitDriver.orbit.period, time);
+
                 }
                 catch (NullReferenceException)
                 {
@@ -564,6 +567,7 @@ namespace WhitecatIndustries
                 LAN = 360 - LAN;
             }
              */
+/*
 
             return UtilMath.RadiansToDegrees(LAN);
         }
@@ -663,6 +667,9 @@ namespace WhitecatIndustries
                         FinalVelInitialVector = FinalVelVector;
                     }
                 }
+  /*
+  /*
+ * /
 
                 #region Depreciated Timewarp Calculations
                 /*
@@ -743,8 +750,9 @@ namespace WhitecatIndustries
                 }
             }
              */
-                #endregion
 
+
+/*
                 print("Change in delta V across timewarp duration in one second: " + FinalVelVector.magnitude);
 
                 FinalVelVector = InitialVelVector + (FinalVelVector - FinalVelInitialVector) ; // Get change across 50 not sum of 50
@@ -816,7 +824,7 @@ namespace WhitecatIndustries
             StateVectorBuiltOrbit.LAN = NewLAN;
             StateVectorBuiltOrbit.epoch = vessel.orbitDriver.orbit.epoch;
            // StateVectorBuiltOrbit.argumentOfPeriapsis = NewLPE;
-            StateVectorBuiltOrbit.meanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(vessel.orbitDriver.orbit.E, HighLogic.CurrentGame.UniversalTime);
+            StateVectorBuiltOrbit.meanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
             StateVectorBuiltOrbit.referenceBody = body;
             StateVectorBuiltOrbit.meanAnomalyAtEpoch = vessel.orbitDriver.orbit.meanAnomalyAtEpoch;
 
@@ -881,3 +889,4 @@ namespace WhitecatIndustries
 
     }
 }
+*/

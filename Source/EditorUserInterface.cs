@@ -8,7 +8,7 @@ using KSP.UI.Screens;
 
 namespace WhitecatIndustries
 {
-    [KSPAddon(KSPAddon.Startup.EditorAny, false)]
+    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     class VABUserInterface : MonoBehaviour
     {
         private static int currentTab = 0;
@@ -186,6 +186,60 @@ namespace WhitecatIndustries
             GUILayout.Space(2);
             GUILayout.Label("_________________________________________");
             GUILayout.Space(3);
+
+            GUILayout.Label("Station Keeping Information:");
+            GUILayout.Space(2);
+            GUILayout.Label("_________________________________________");
+            GUILayout.Space(2);
+            GUILayout.Label("Total Fuel: " + GetFuel() * 1000 + "Kg.");
+            GUILayout.Space(2);
+            GUILayout.Label("Useable Resources: ");
+            GUILayout.BeginHorizontal();
+
+            Dictionary<string, double> ResourceQuantites = new Dictionary<string, double>();
+            double tempHold = 0;
+
+            foreach (Part part in EditorLogic.SortedShipList)
+            { 
+
+                foreach (PartResource res in part.Resources)
+                {
+                    if (ResourceQuantites.ContainsKey(res.resourceName))
+                    {
+                        double previousValue = 0;
+                        ResourceQuantites.TryGetValue(res.resourceName, out previousValue);
+                        ResourceQuantites.Remove(res.resourceName);
+                        ResourceQuantites.Add(res.resourceName, previousValue + res.maxAmount);
+                    }
+                    else
+                    {
+                        ResourceQuantites.Add(res.resourceName, res.maxAmount);
+                    }
+                    //GUILayout.Label(res.resourceName + ": " + res.maxAmount);
+                }
+
+                foreach (string resource in ResourceQuantites.Keys)
+                {
+                    double quantity = 0;
+                    ResourceQuantites.TryGetValue(resource, out quantity);
+                    GUILayout.Label(resource + " : " + quantity);
+
+                }
+
+            }
+
+
+            GUILayout.EndHorizontal();
+            GUILayout.Space(2);
+            //GUILayout.Label("Maximum possible Station Keeping fuel lifetime: " + (UserInterface.FormatTimeUntilDecayInDaysToString(GetMaximumPossibleLifetime())));
+            GUILayout.Space(2);
+           // GUILayout.Label("Maximum possible lifetime: " + (UserInterface.FormatTimeUntilDecayInDaysToString(DecayManager.DecayTimePredictionEditor(CalculateArea(), CalculateMass() * 1000, ReferenceBody.Radius + AltitudeValue, 0, ReferenceBody) + 
+           //  + DecayManager.EditorDecayRateAtmosphericDrag(CalculateMass() * 1000, CalculateArea(), ReferenceBody.Radius + AltitudeValue, 0, ReferenceBody)
+           //   + GetMaximumPossibleLifetime() )));
+            GUILayout.Space(2);
+            GUILayout.Label("_________________________________________");
+            GUILayout.Space(3);
+
             GUILayout.EndVertical();
         }
 
@@ -200,6 +254,144 @@ namespace WhitecatIndustries
             Area = (EditorLogic.fetch.ship.shipSize.y * EditorLogic.fetch.ship.shipSize.z) / 4;
 
             return Area;
+        }
+
+        public double GetFuel()
+        {
+            double Total = 0;
+            float EmptyMass = 0;
+            float FuelMass = 0;
+
+            EditorLogic.fetch.ship.GetShipMass(out EmptyMass, out FuelMass);
+
+            Total = FuelMass;
+
+            return Total;
+        }
+
+        public double GetMaximumPossibleLifetime()
+        {
+            double Lifetime = 0;
+            
+            Part[] constructParts = EditorLogic.RootPart.FindChildParts<Part>();
+            constructParts.AddUnique(EditorLogic.RootPart);
+
+            foreach (Part p in constructParts)
+            {
+                Dictionary<string, double> UsableFuels = new Dictionary<string,double>();
+                Dictionary<string, double> FuelRatios = new Dictionary<string,double>();
+
+                if (GetEfficiencyEng(p) != 0)
+                {
+                    for (int i = 0; i < GetResources().Count; i++)
+                    {
+                        foreach (Propellant pro in p.FindModuleImplementing<ModuleEngines>().propellants)
+                        {
+                            if (pro.ToString() == GetResources().ElementAt(i))
+                            {
+                                // Blah blah blah 
+                                UsableFuels.Add(pro.ToString(), pro.totalResourceCapacity);
+                                FuelRatios.Add(pro.ToString(), pro.ratio);
+
+                                double ResEff = 1.0 / GetEfficiencyEng(p);
+                                var ClockType = Settings.Read24Hr();
+                                double HoursInDay = 6;
+
+                                if (ClockType == true)
+                                {
+                                    HoursInDay = 24.0;
+                                }
+                                else
+                                {
+                                    HoursInDay = 6.0;
+                                }
+
+                                Lifetime = Lifetime + ((pro.totalResourceCapacity) / ((DecayManager.EditorDecayRateRadiationPressure(CalculateMass(), CalculateArea(), ReferenceBody.Radius + AltitudeValue, 0, ReferenceBody) * ResEff * Settings.ReadResourceRateDifficulty())) / (60 * 60 * HoursInDay));
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            return Lifetime;
+        }
+
+        public double GetPropellants(Propellant prop)
+        {
+            return 0;
+        }
+
+        public string GetEngines()
+        {
+            string Engines = "";
+
+            return Engines;
+        }
+
+        public List<string> GetResources()
+        {
+            List<string> reslist = new List<string>();
+
+            Part[] constructParts = EditorLogic.RootPart.FindChildParts<Part>();
+            constructParts.AddUnique(EditorLogic.RootPart);
+
+            foreach (Part p in constructParts)
+            {
+
+                if (p.Resources.Count != 0)
+                {
+                    foreach (PartResource pRes in p.Resources)
+                    {
+                        if (pRes.resourceName != "IntakeAir" && pRes.resourceName != "ElectricCharge")
+                        {
+                            reslist.Add(pRes.resourceName);
+                        }
+                    }
+                }
+
+                /*
+                ProtoPartSnapshot protopart = p.protoPartSnapshot;
+             
+                {
+                    foreach (ProtoPartModuleSnapshot protopartmodulesnapshot in protopart.modules)
+                    {
+                        if (protopartmodulesnapshot.moduleName == "ModuleOrbitalDecay")
+                        {
+                            ConfigNode node = protopartmodulesnapshot.moduleValues.GetNode("stationKeepData");
+                            reslist.Add(node.GetValue("resources"));
+                            break;
+                        }
+                    }
+                }
+                 */
+            }
+
+            return reslist;
+        }
+
+        public double GetEfficiencyEng(Part p)
+        {
+            double Efficiency = 0;
+
+                if (p.FindModuleImplementing<ModuleEnginesFX>())
+                {
+                    Efficiency = p.FindModuleImplementing<ModuleEnginesFX>().realIsp; // Real isp? Yeah why not
+                }
+
+            return Efficiency;
+        }
+
+        public double GetEfficiencyRCS(Part p)
+        {
+            double Efficiency = 0;
+
+            if (p.FindModuleImplementing<ModuleRCS>())
+            {
+                Efficiency = p.FindModuleImplementing<ModuleRCS>().realISP; // Real isp? Yeah why not
+            }
+
+            return Efficiency;
         }
     }
 }

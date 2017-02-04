@@ -139,8 +139,8 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval); 
 
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
@@ -261,8 +261,10 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+
+            // 1.6.0 Mean Anomaly Changes!
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
 
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
@@ -383,8 +385,10 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
+            //MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
 
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
@@ -509,8 +513,9 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
+            //MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
 
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
@@ -636,9 +641,8 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
-
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
 
@@ -766,9 +770,8 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
-
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
 
@@ -894,9 +897,8 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
-
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
 
@@ -1023,9 +1025,8 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
-
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
 
@@ -1152,9 +1153,8 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
-
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
 
@@ -1281,9 +1281,8 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
-
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
 
@@ -1410,9 +1409,8 @@ namespace WhitecatIndustries
             //print("SemiLatusRectum: " + SemiLatusRectum);
 
             double EccentricAnomaly = vessel.orbitDriver.orbit.eccentricAnomaly;
-            double InitialMeanAnomaly = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime); //MeanMotion * (HighLogic.CurrentGame.UniversalTime - vessel.orbitDriver.orbit.epoch); // EPH = Epoch Time
-            double MeanAnomalyAtTime = vessel.orbitDriver.orbit.GetMeanAnomaly(EccentricAnomaly, HighLogic.CurrentGame.UniversalTime + TimeInterval);//MeanMotion * ((HighLogic.CurrentGame.UniversalTime + 1.0) - HighLogic.CurrentGame.UniversalTime); // 1.0 = Time Interval of 1 second // Initial Mean Anomaly + 
-
+            double InitialMeanAnomaly = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime);
+            double MeanAnomalyAtTime = OrbitalDecayUtilities.GetMeanAnomalyAtTime(vessel.orbitDriver.orbit.meanAnomalyAtEpoch, vessel.orbitDriver.orbit.epoch, vessel.orbitDriver.orbit.period, HighLogic.CurrentGame.UniversalTime + TimeInterval);
             double ExactInitialEccentricAnomaly = 0; // E0 [Degrees]  
             ExactInitialEccentricAnomaly = vessel.orbitDriver.orbit.GetEccentricAnomaly(HighLogic.CurrentGame.UniversalTime); ;
 

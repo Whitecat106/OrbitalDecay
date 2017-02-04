@@ -128,10 +128,12 @@ namespace WhitecatIndustries
             {
                 DecayBreakdownwindowPosition = GUILayout.Window(8989, DecayBreakdownwindowPosition, DecayBreakdownWindow, "Orbital Decay Breakdown Display", windowStyle);
             }
+            /*
             if (NBodyBreakdownVisible)
             {
                 NBodyManagerwindowPosition = GUILayout.Window(8988, NBodyManagerwindowPosition, NBodyManagerWindow, "Orbital Decay N-Body Manager", windowStyle);
             }
+             */
         }
 
         public void MainWindow(int windowID)
@@ -278,7 +280,7 @@ namespace WhitecatIndustries
 
             GUILayout.EndHorizontal();
             GUILayout.Space(3);
-            GUILayout.Label("_________________________________________");
+            GUILayout.Label("_______________________________________");
             GUILayout.EndVertical();
 
             scrollPosition1 = GUILayout.BeginScrollView(scrollPosition1, GUILayout.Width(290), GUILayout.Height(350));
@@ -476,7 +478,7 @@ namespace WhitecatIndustries
                             }
                         }
                         GUILayout.Space(2);
-                        GUILayout.Label("_______________________________________");
+                        GUILayout.Label("_____________________________________");
                         GUILayout.Space(3);
                         GUILayout.EndVertical();
                     }
@@ -655,7 +657,7 @@ namespace WhitecatIndustries
             GUILayout.EndVertical();
         }
 
-
+        /*
         public void NBodyManagerWindow(int id) // 1.6.0 
         {
             if (GUI.Button(new Rect(NBodyManagerwindowPosition.width - 22, 3, 19, 19), "x"))
@@ -687,6 +689,7 @@ namespace WhitecatIndustries
                 NBodyMomentaryDeltaV = NBodyManager.GetMomentaryDeltaV(subwindowVessel, HighLogic.CurrentGame.UniversalTime);
             }
              * */
+        /*
             try
             {
                 NBodyMomentaryDeltaV = NBodyManager.GetMomentaryDeltaV(subwindowVessel, HighLogic.CurrentGame.UniversalTime);
@@ -729,7 +732,7 @@ namespace WhitecatIndustries
             //NBodyManagerwindowPosition.y = Mathf.Clamp(MainwindowPosition.y, 0f, Screen.height - MainwindowPosition.height);
 
         }
-
+        */
 
         public void DecayBreakdownWindow(int id)
         {

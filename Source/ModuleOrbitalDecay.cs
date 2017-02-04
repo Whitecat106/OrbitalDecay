@@ -233,6 +233,7 @@ namespace WhitecatIndustries
                         if (propellant.name != "ElectricCharge")
                         {
                             ConfigNode propellantNode = new ConfigNode("PROPELLANT");
+                            //amount = module.part.Resources.Get(propellant.id).amount;
                             amount = fetchPartResource(module.part, propellant.id, ResourceFlowMode.STAGE_PRIORITY_FLOW);
                             propellantNode.AddValue("name", propellant.name);
                             propellantNode.AddValue("id", propellant.id.ToString());
@@ -267,6 +268,8 @@ namespace WhitecatIndustries
                         if (propellant.name != "ElectricCharge")
                         {
                             ConfigNode propellantNode = new ConfigNode("PROPELLANT");
+                            //amount = module.part.Resources.Get(propellant.id).amount
+                            //amount =
                             amount = fetchPartResource(module.part, propellant.id, ResourceFlowMode.STAGE_PRIORITY_FLOW);
                             propellantNode.AddValue("name", propellant.name.ToString());
                             propellantNode.AddValue("id", propellant.id.ToString());
@@ -345,20 +348,15 @@ namespace WhitecatIndustries
             }
         }
      
-           
-
-
-        
-
-       
-
 
         private double fetchPartResource(Part part,int Id,ResourceFlowMode flowMode)
         {
 
             double amount = 0;
+            double MaxAmount = 0;
             List<PartResource> Resources = new List<PartResource>();
-            part.GetConnectedResources(Id, flowMode , Resources);
+            
+            part.GetConnectedResourceTotals(Id, out amount, out MaxAmount);
 
             if (Resources.Count > 0)
             {
@@ -369,7 +367,7 @@ namespace WhitecatIndustries
             }
             return amount;
         }
-
+        
        
             
       

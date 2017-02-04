@@ -75,7 +75,8 @@ namespace WhitecatIndustries
                 GameEvents.onVesselWasModified.Add(UpdateActiveVesselInformation); // Resource level change 1.3.0
                 GameEvents.onStageSeparation.Add(UpdateActiveVesselInformationEventReport); // Resource level change 1.3.0
                 GameEvents.onNewVesselCreated.Add(UpdateVesselSpawned); // New Vessel Checks 1.4.2
-                GameEvents.onTimeWarpRateChanged.Add(NBodyManager.TimewarpShift); // Timewarp checks for 1.6.0
+
+                //GameEvents.onTimeWarpRateChanged.Add(NBodyManager.TimewarpShift); // Timewarp checks for 1.6.0
 
                 if (HighLogic.LoadedScene == GameScenes.FLIGHT)//CheckSceneStateFlight(HighLogic.LoadedScene)) // 1.3.1
                 {
@@ -355,7 +356,7 @@ namespace WhitecatIndustries
                     CatchupResourceMassAreaDataComplete = true;
                 }
             }
-
+            /*
             if (Time.timeSinceLevelLoad > 0.45) // NBody predictions
             {
                 if (HighLogic.LoadedSceneIsGame && (HighLogic.LoadedScene != GameScenes.LOADING && HighLogic.LoadedScene != GameScenes.LOADINGBUFFER && HighLogic.LoadedScene != GameScenes.MAINMENU))
@@ -371,6 +372,7 @@ namespace WhitecatIndustries
                     }
                 }
             }
+             */
 
             if (Time.timeSinceLevelLoad > 0.5)
             {
@@ -461,7 +463,8 @@ namespace WhitecatIndustries
                 GameEvents.onVesselWasModified.Remove(UpdateActiveVesselInformation); // 1.3.0 Resource Change
                 GameEvents.onStageSeparation.Remove(UpdateActiveVesselInformationEventReport); // 1.3.0
                 GameEvents.onNewVesselCreated.Remove(UpdateVesselSpawned); // 1.4.2 
-                GameEvents.onTimeWarpRateChanged.Remove(NBodyManager.TimewarpShift); // 1.6.0 
+
+                //GameEvents.onTimeWarpRateChanged.Remove(NBodyManager.TimewarpShift); // 1.6.0 
 
                 if (HighLogic.LoadedScene == GameScenes.FLIGHT) // 1.3.1
                 {
@@ -1056,7 +1059,7 @@ namespace WhitecatIndustries
                     {
                         if (vessel.vesselType != VesselType.EVA)
                         {
-                            NBodyManager.ManageVessel(vessel); // 1.6.0 NBody
+                            //NBodyManager.ManageVessel(vessel); // 1.6.0 NBody
 
                             VesselData.UpdateVesselSMA(vessel, (VesselData.FetchSMA(vessel) - DecayValue));
                             CatchUpOrbit(vessel);

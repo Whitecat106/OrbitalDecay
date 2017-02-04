@@ -1,4 +1,6 @@
 ﻿/*
+
+/*
  * Whitecat Industries Orbital Decay for Kerbal Space Program. 
  * 
  * Written by Whitecat106 (Marcus Hehir).
@@ -22,7 +24,7 @@
  * purposes. It is in no way meant to represent a real entity. Any similarity to a real entity
  * is purely coincidental.
  */
-
+/*
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -164,6 +166,7 @@ namespace WhitecatIndustries
                 lineRenderer = MapView.MapCamera.gameObject.AddOrGetComponent<LineRenderer>();
 
                 lineRenderer.gameObject.layer = 31;
+                lineRenderer.transform.localPosition = Vector3d.zero;
                 lineRenderer.material = MapView.OrbitLinesMaterial;
                 lineRenderer.SetColors(Color.blue, Color.blue);
                 
@@ -250,3 +253,4 @@ namespace WhitecatIndustries
         }
     }
 }
+*/
